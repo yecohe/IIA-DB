@@ -421,3 +421,20 @@ def domain_split(client, sheet_id, urls, source_name):
         st.success(f"Finished processing '{source_name}'")
     except Exception as e:
         st.error(f"Error processing '{source_name}': {e}")
+
+# Assuming you have a form for adding/editing items
+def analyze_url(url):
+    try:
+        title = get_title(url)
+        description = get_description(url)
+        languages = detect_language(title, description)
+        
+        # Translate title and description to English
+        translated_title = translate_to_english(title)
+        translated_description = translate_to_english(description)
+
+        # Return fetched and translated data
+        return title, description, translated_title, translated_description, languages
+    except Exception as e:
+        st.error(f"Error during analysis for URL '{url}': {e}")
+        return "Error", "Error", "Error", "Error", ["Error"]
