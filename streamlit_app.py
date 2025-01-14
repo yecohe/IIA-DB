@@ -98,7 +98,8 @@ selected = option_menu(
     icons=["table", "search", "plus"],
     default_index=0,
     orientation="vertical",
-    menu_icon="cast"
+    menu_icon="cast",
+    key="main_menu"  # Ensuring it works well in the sidebar
 )
 
 # View Database
