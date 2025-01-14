@@ -1,3 +1,4 @@
 streamlit
 validators
 datetime
+streamlit_option_menu
