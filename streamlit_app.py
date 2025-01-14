@@ -92,15 +92,16 @@ def update_item(item_id, url, decision, source, title, description, tags, notes)
 setup_database()
 
 # Sidebar menu using streamlit_option_menu
-selected = option_menu(
-    menu_title=None,
-    options=["View Database", "Search and Edit", "Add New Item"],
-    icons=["table", "search", "plus"],
-    default_index=0,
-    orientation="vertical",
-    menu_icon="cast",
-    key="main_menu"  # Ensuring it works well in the sidebar
-)
+with st.sidebar:
+    selected = option_menu(
+        menu_title=None,
+        options=["View Database", "Search and Edit", "Add New Item"],
+        icons=["table", "search", "plus"],
+        default_index=0,
+        orientation="vertical",
+        menu_icon="cast",
+        key="main_menu"  # Ensuring it works well in the sidebar
+    )
 
 # View Database
 if selected == "View Database":
