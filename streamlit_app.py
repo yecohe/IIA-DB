@@ -173,4 +173,4 @@ elif search_type == "Advanced Search (Specific Fields)" and query:
         st.warning("Please select at least one field to search.")
 
 # Footer
-st.write("Use the forms above to add, search, and edit da
+st.write("Use the forms above to add, search, and edit database items.")
