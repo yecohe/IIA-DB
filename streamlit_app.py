@@ -4,6 +4,7 @@ from datetime import datetime
 import validators  # For URL validation
 import pandas as pd  # For displaying the database as a table
 from streamlit_option_menu import option_menu  # For sidebar menu
+from tools import analyze_url  # Assuming you have this function to analyze URL
 
 # Database connection
 def get_connection():
@@ -249,7 +250,18 @@ elif selected == "Add New Item":
         tags = st.text_input("Tags (comma-separated)")
         languages = st.text_input("Languages (comma-separated)")  # Before notes
         notes = st.text_area("Notes")
+        analyze_button = st.form_submit_button("Analyze")
         add_item_submitted = st.form_submit_button("Add Item")
+        
+        if analyze_button:
+            if validators.url(url):
+                analyzed_title, analyzed_description = analyze_url(url)
+                title = analyzed_title
+                description = analyzed_description
+                st.success(f"Title and Description populated from the URL: {title}")
+            else:
+                st.error("Please enter a valid URL to analyze.")
+        
         if add_item_submitted:
             if not validators.url(url):
                 st.error("Invalid URL. Please enter a valid URL.")
