@@ -61,7 +61,7 @@ def regular_search(search_term):
     conn = create_connection()
     cursor = conn.cursor()
     cursor.execute('''
-        SELECT * FROM items WHERE title LIKE ? OR url LIKE ? OR description LIKE ? OR tags LIKE ? OR languages LIKE ?
+        SELECT * FROM items WHERE title LIKE ? OR url LIKE ? OR description LIKE ? OR tags LIKE ? OR languages LIKE ? OR source LIKE ? OR title_translated LIKE ? OR description_translated LIKE ? OR notes LIKE ? 
     ''', ('%' + search_term + '%', '%' + search_term + '%', '%' + search_term + '%', '%' + search_term + '%', '%' + search_term + '%'))
     results = cursor.fetchall()
     conn.close()
