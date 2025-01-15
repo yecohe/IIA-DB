@@ -93,33 +93,43 @@ def main():
             default_index=0,
         )
 
-    if selected == "View Database":
+if selected == "View Database":
         st.write("### View Database")
         
-        # Search for items in the database
-        search_term = st.text_input("Search by keyword or tag")
-        search_button = st.button("Search")
+        # Fetch all items from the database
+        conn = create_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM items')
+        items = cursor.fetchall()
+        conn.close()
 
-        if search_button:
-            results = search_items(search_term)
+        if items:
+            # Display the items in a table
+            st.write("### Items List")
+            table_data = []
+            for item in items:
+                table_data.append([
+                    item[0],  # ID
+                    item[1],  # URL
+                    item[2],  # Decision
+                    item[3],  # Decision Reason
+                    item[4],  # Source
+                    item[5],  # Title
+                    item[6],  # Description
+                    item[7],  # Translated Title
+                    item[8],  # Translated Description
+                    item[9],  # Tags
+                    item[10],  # Notes
+                    item[11],  # Languages
+                ])
+            st.dataframe(table_data, columns=[
+                'ID', 'URL', 'Decision', 'Decision Reason', 'Source',
+                'Title', 'Description', 'Translated Title', 'Translated Description',
+                'Tags', 'Notes', 'Languages'
+            ])
         else:
-            results = []
-
-        if results:
-            st.write("### Search Results")
-            for item in results:
-                item_id = item[0]
-                st.write(f"Item ID: {item_id} - {item[5]}")
-                st.write(f"URL: {item[1]}")
-                st.write(f"Decision: {item[2]}")
-                st.write(f"Reason: {item[3]}")
-                st.write(f"Source: {item[4]}")
-                st.write(f"Tags: {item[9]}")
-                st.write(f"Languages: {item[11]}")
-                st.write(f"Notes: {item[10]}")
-                st.write("---")
-        else:
-            st.info("No items found.")
+            st.info("No items in the database.")
+        
         
     elif selected == "Add New Item":
         st.write("### Add a New Item")
