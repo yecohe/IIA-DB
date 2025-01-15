@@ -93,7 +93,7 @@ def main():
             default_index=0,
         )
 
-if selected == "View Database":
+    if selected == "View Database":
         st.write("### View Database")
         
         # Fetch all items from the database
