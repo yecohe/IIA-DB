@@ -1,21 +1,72 @@
 import streamlit as st
-from streamlit_option_menu import option_menu
+import sqlite3
 import validators
 from tools import analyze_url
+from streamlit_option_menu import option_menu
 
-# Mock functions for database operations
+# SQLite3 Database setup
+def create_connection():
+    conn = sqlite3.connect('database.db')
+    return conn
+
+# Create the items table if it doesn't exist
+def create_table():
+    conn = create_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS items (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            url TEXT NOT NULL,
+            decision TEXT,
+            decision_reason TEXT,
+            source TEXT,
+            title TEXT,
+            description TEXT,
+            title_translated TEXT,
+            description_translated TEXT,
+            tags TEXT,
+            notes TEXT,
+            languages TEXT
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+# Add a new item to the database
 def add_item(url, decision, decision_reason, source, title, description, title_translated, description_translated, tags, notes, languages):
-    st.info("Item added to database")
+    conn = create_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        INSERT INTO items (url, decision, decision_reason, source, title, description, title_translated, description_translated, tags, notes, languages)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (url, decision, decision_reason, source, title, description, title_translated, description_translated, tags, notes, languages))
+    conn.commit()
+    conn.close()
 
+# Update an existing item in the database
 def update_item(item_id, url, decision, decision_reason, source, title, description, title_translated, description_translated, tags, notes, languages):
-    st.info(f"Item {item_id} updated in database")
+    conn = create_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        UPDATE items
+        SET url = ?, decision = ?, decision_reason = ?, source = ?, title = ?, description = ?, title_translated = ?, description_translated = ?, tags = ?, notes = ?, languages = ?
+        WHERE id = ?
+    ''', (url, decision, decision_reason, source, title, description, title_translated, description_translated, tags, notes, languages, item_id))
+    conn.commit()
+    conn.close()
 
+# Search for items in the database
 def search_items(search_term):
-    return []  # Mock search results
+    conn = create_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT * FROM items WHERE title LIKE ? OR tags LIKE ?
+    ''', ('%' + search_term + '%', '%' + search_term + '%'))
+    results = cursor.fetchall()
+    conn.close()
+    return results
 
-def get_all_items():
-    return []  # Mock database items
-
+# Function to update form fields with analyzed data
 def update_form_with_analysis(url):
     try:
         analyzed_data = analyze_url(url)
@@ -29,21 +80,51 @@ def update_form_with_analysis(url):
     except Exception as e:
         st.error(f"Error analyzing URL: {e}")
 
+# Main Streamlit app
 def main():
-    # Sidebar menu
+    # Initialize the database and create the table
+    create_table()
+
     with st.sidebar:
         selected = option_menu(
-            "Menu",
-            ["Add New Item", "Edit Item", "View Database"],
-            icons=["plus", "pencil", "table"],
-            menu_icon="menu",
-            default_index=0
+            menu_title="Main Menu",
+            options=["View Database", "Add New Item", "Edit Item"],
+            icons=["view-list", "plus-circle", "pencil"],
+            default_index=0,
         )
 
-    # Add New Item
-    if selected == "Add New Item":
+    if selected == "View Database":
+        st.write("### View Database")
+        
+        # Search for items in the database
+        search_term = st.text_input("Search by keyword or tag")
+        search_button = st.button("Search")
+
+        if search_button:
+            results = search_items(search_term)
+        else:
+            results = []
+
+        if results:
+            st.write("### Search Results")
+            for item in results:
+                item_id = item[0]
+                st.write(f"Item ID: {item_id} - {item[5]}")
+                st.write(f"URL: {item[1]}")
+                st.write(f"Decision: {item[2]}")
+                st.write(f"Reason: {item[3]}")
+                st.write(f"Source: {item[4]}")
+                st.write(f"Tags: {item[9]}")
+                st.write(f"Languages: {item[11]}")
+                st.write(f"Notes: {item[10]}")
+                st.write("---")
+        else:
+            st.info("No items found.")
+        
+    elif selected == "Add New Item":
         st.write("### Add a New Item")
 
+        # Initialize session state variables for form
         if "title" not in st.session_state:
             st.session_state.title = ""
             st.session_state.description = ""
@@ -80,7 +161,6 @@ def main():
                     )
                     st.success("New item added successfully!")
 
-    # Edit Item
     elif selected == "Edit Item":
         st.write("### Edit Existing Items")
 
@@ -133,17 +213,6 @@ def main():
                                     tags, notes, languages
                                 )
                                 st.success(f"Item ID {item_id} updated successfully!")
-
-    # View Database
-    elif selected == "View Database":
-        st.write("### Database View")
-
-        items = get_all_items()
-        if items:
-            for item in items:
-                st.write(f"ID: {item[0]}, Title: {item[5]}, URL: {item[1]}")
-        else:
-            st.info("No items in the database.")
 
 if __name__ == "__main__":
     main()
