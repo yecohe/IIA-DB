@@ -1,23 +1,21 @@
 import streamlit as st
+from streamlit_option_menu import option_menu
 import validators
 from tools import analyze_url
 
-# Add a new item to the database
+# Mock functions for database operations
 def add_item(url, decision, decision_reason, source, title, description, title_translated, description_translated, tags, notes, languages):
-    # Replace this with your database insertion logic
     st.info("Item added to database")
 
-# Update an existing item in the database
 def update_item(item_id, url, decision, decision_reason, source, title, description, title_translated, description_translated, tags, notes, languages):
-    # Replace this with your database update logic
     st.info(f"Item {item_id} updated in database")
 
-# Search for items in the database
 def search_items(search_term):
-    # Replace this with your database search logic
-    return []  # Return mock search results for demonstration
+    return []  # Mock search results
 
-# Function to update form fields with analyzed data
+def get_all_items():
+    return []  # Mock database items
+
 def update_form_with_analysis(url):
     try:
         analyzed_data = analyze_url(url)
@@ -31,15 +29,21 @@ def update_form_with_analysis(url):
     except Exception as e:
         st.error(f"Error analyzing URL: {e}")
 
-# Main Streamlit app
 def main():
-    st.sidebar.title("Menu")
-    selected = st.sidebar.selectbox("Choose an action", ["Add New Item", "Edit Item"])
+    # Sidebar menu
+    with st.sidebar:
+        selected = option_menu(
+            "Menu",
+            ["Add New Item", "Edit Item", "View Database"],
+            icons=["plus", "pencil", "table"],
+            menu_icon="menu",
+            default_index=0
+        )
 
+    # Add New Item
     if selected == "Add New Item":
         st.write("### Add a New Item")
 
-        # Initialize session state variables for form
         if "title" not in st.session_state:
             st.session_state.title = ""
             st.session_state.description = ""
@@ -76,6 +80,7 @@ def main():
                     )
                     st.success("New item added successfully!")
 
+    # Edit Item
     elif selected == "Edit Item":
         st.write("### Edit Existing Items")
 
@@ -128,6 +133,17 @@ def main():
                                     tags, notes, languages
                                 )
                                 st.success(f"Item ID {item_id} updated successfully!")
+
+    # View Database
+    elif selected == "View Database":
+        st.write("### Database View")
+
+        items = get_all_items()
+        if items:
+            for item in items:
+                st.write(f"ID: {item[0]}, Title: {item[5]}, URL: {item[1]}")
+        else:
+            st.info("No items in the database.")
 
 if __name__ == "__main__":
     main()
