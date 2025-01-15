@@ -80,28 +80,31 @@ def analyze_url(url):
     return title, description, translated_title, translated_description, languages
 
 # Main Streamlit app
+# Main Streamlit app
 def main():
+    # Initialize the database and create the table
     create_table()
 
     with st.sidebar:
-        selected = st.radio(
-            "Main Menu",
-            ["View Database", "Add New Item", "Edit Item"],
-            index=0,
+        selected = option_menu(
+            menu_title="Main Menu",
+            options=["View Database", "Add New Item", "Edit Item"],
+            icons=["view-list", "plus-circle", "pencil"],
+            default_index=0,
         )
 
     if selected == "View Database":
         st.write("### View Database")
         
-        # Fetch all items from the database
+        # Fetch only the necessary columns (avoiding the rowid)
         conn = create_connection()
         cursor = conn.cursor()
-        cursor.execute('SELECT * FROM items')
+        cursor.execute('SELECT id, url, decision, decision_reason, source, title, description, translated_title, translated_description, tags, notes, languages FROM items')
         items = cursor.fetchall()
         conn.close()
 
         if items:
-            # Create a pandas DataFrame for better handling and visualization
+            # Create a pandas DataFrame with the expected columns
             df = pd.DataFrame(items, columns=[
                 'ID', 'URL', 'Decision', 'Decision Reason', 'Source',
                 'Title', 'Description', 'Translated Title', 'Translated Description',
@@ -140,8 +143,7 @@ def main():
             add_item_submitted = st.form_submit_button("Add Item")
 
             if analyze_button:
-                with st.spinner('Analyzing...'):
-                    update_form_with_analysis(url)
+                update_form_with_analysis(url)
 
             if add_item_submitted:
                 if not validators.url(url):
@@ -152,13 +154,6 @@ def main():
                         title_translated, description_translated, tags, notes, languages
                     )
                     st.success("New item added successfully!")
-
-                    # Reset form after submission
-                    st.session_state.title = ""
-                    st.session_state.description = ""
-                    st.session_state.title_translated = ""
-                    st.session_state.description_translated = ""
-                    st.session_state.languages = ""
 
     elif selected == "Edit Item":
         st.write("### Edit Existing Items")
@@ -235,10 +230,8 @@ def main():
                                     description, title_translated, description_translated,
                                     tags, notes, languages
                                 )
-                                st.success("Item updated successfully!")
+                                st.success(f"Item ID {item_id} updated successfully!")
 
-        else:
-            st.info("No results found.")
 
 # Running the main function to start the app
 if __name__ == "__main__":
