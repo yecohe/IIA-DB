@@ -1,30 +1,23 @@
 import streamlit as st
+import validators
 import sqlite3
 import pandas as pd
-from streamlit_option_menu import option_menu
-from tools import analyze_url
-import validators
 
-# SQLite3 Database setup
-def create_connection():
-    conn = sqlite3.connect('database.db')
-    return conn
-
-# Create the items table if it doesn't exist
+# Function to create the database and table
 def create_table():
-    conn = create_connection()
+    conn = sqlite3.connect("items.db")
     cursor = conn.cursor()
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS items (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            url TEXT NOT NULL,
+            id INTEGER PRIMARY KEY,
+            url TEXT,
             decision TEXT,
             decision_reason TEXT,
             source TEXT,
             title TEXT,
             description TEXT,
-            title_translated TEXT,
-            description_translated TEXT,
+            translated_title TEXT,
+            translated_description TEXT,
             tags TEXT,
             notes TEXT,
             languages TEXT
@@ -33,112 +26,68 @@ def create_table():
     conn.commit()
     conn.close()
 
-# Add a new item to the database
+# Function to create a database connection
+def create_connection():
+    conn = sqlite3.connect("items.db")
+    return conn
+
+# Function to add a new item to the database
 def add_item(url, decision, decision_reason, source, title, description, title_translated, description_translated, tags, notes, languages):
     conn = create_connection()
     cursor = conn.cursor()
     cursor.execute('''
-        INSERT INTO items (url, decision, decision_reason, source, title, description, title_translated, description_translated, tags, notes, languages)
+        INSERT INTO items (url, decision, decision_reason, source, title, description, translated_title, translated_description, tags, notes, languages)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (url, decision, decision_reason, source, title, description, title_translated, description_translated, tags, notes, languages))
     conn.commit()
     conn.close()
 
-# Update an existing item in the database
+# Function to update an existing item in the database
 def update_item(item_id, url, decision, decision_reason, source, title, description, title_translated, description_translated, tags, notes, languages):
     conn = create_connection()
     cursor = conn.cursor()
     cursor.execute('''
-        UPDATE items
-        SET url = ?, decision = ?, decision_reason = ?, source = ?, title = ?, description = ?, title_translated = ?, description_translated = ?, tags = ?, notes = ?, languages = ?
+        UPDATE items SET
+            url = ?, decision = ?, decision_reason = ?, source = ?, title = ?, description = ?, translated_title = ?, translated_description = ?, tags = ?, notes = ?, languages = ?
         WHERE id = ?
     ''', (url, decision, decision_reason, source, title, description, title_translated, description_translated, tags, notes, languages, item_id))
     conn.commit()
     conn.close()
 
-# Function to search for items using regular search
-def regular_search(search_term):
-    conn = create_connection()
-    cursor = conn.cursor()
-    cursor.execute('''
-        SELECT * FROM items 
-        WHERE (title LIKE ? OR title_translated LIKE ?)
-        OR (description LIKE ? OR description_translated LIKE ?)
-        OR url LIKE ? 
-        OR tags LIKE ? 
-        OR languages LIKE ? 
-        OR decision LIKE ?
-        OR decision_reason LIKE ?
-        OR source LIKE ?
-        OR notes LIKE ?
-    ''', ('%' + search_term + '%', '%' + search_term + '%', 
-          '%' + search_term + '%', '%' + search_term + '%', 
-          '%' + search_term + '%', '%' + search_term + '%', 
-          '%' + search_term + '%', '%' + search_term + '%', 
-          '%' + search_term + '%', '%' + search_term + '%', 
-          '%' + search_term + '%'))
-    results = cursor.fetchall()
-    conn.close()
-    return results
-
-# Function to search for items using advanced search
-def advanced_search(queries):
-    query_conditions = []
-    query_params = []
-
-    if queries.get('url'):
-        query_conditions.append('url LIKE ?')
-        query_params.append('%' + queries['url'] + '%')
-    if queries.get('title'):
-        query_conditions.append('(title LIKE ? OR title_translated LIKE ?)')
-        query_params.append('%' + queries['title'] + '%')
-        query_params.append('%' + queries['title'] + '%')
-    if queries.get('description'):
-        query_conditions.append('(description LIKE ? OR description_translated LIKE ?)')
-        query_params.append('%' + queries['description'] + '%')
-        query_params.append('%' + queries['description'] + '%')
-    if queries.get('tags'):
-        query_conditions.append('tags LIKE ?')
-        query_params.append('%' + queries['tags'] + '%')
-    if queries.get('languages'):
-        query_conditions.append('languages LIKE ?')
-        query_params.append('%' + queries['languages'] + '%')
-
-    # Combine conditions with "AND"
-    sql_query = 'SELECT * FROM items WHERE ' + ' AND '.join(query_conditions)
-    
-    conn = create_connection()
-    cursor = conn.cursor()
-    cursor.execute(sql_query, tuple(query_params))
-    results = cursor.fetchall()
-    conn.close()
-    return results
-
-# Function to update form fields with analyzed data
+# Function to update form with analysis results (assuming analyze_url is a working function)
 def update_form_with_analysis(url):
     try:
-        analyzed_data = analyze_url(url)
-        if analyzed_data:
-            title, description, translated_title, translated_description, languages = analyzed_data
-            st.session_state.title = title
-            st.session_state.description = description
-            st.session_state.title_translated = translated_title
-            st.session_state.description_translated = translated_description
-            st.session_state.languages = ", ".join(languages)
+        title, description, translated_title, translated_description, languages = analyze_url(url)
+
+        # Ensure session state is updated correctly
+        st.session_state.title = title
+        st.session_state.description = description
+        st.session_state.title_translated = translated_title
+        st.session_state.description_translated = translated_description
+        st.session_state.languages = ', '.join(languages)
+
     except Exception as e:
-        st.error(f"Error analyzing URL: {e}")
+        st.error(f"Error during analysis: {e}")
+
+# Function to analyze the URL (replace this with actual URL analysis logic)
+def analyze_url(url):
+    # Placeholder implementation, replace with real logic
+    title = "Sample Title"
+    description = "Sample Description"
+    translated_title = "Sample Translated Title"
+    translated_description = "Sample Translated Description"
+    languages = ["English"]
+    return title, description, translated_title, translated_description, languages
 
 # Main Streamlit app
 def main():
-    # Initialize the database and create the table
     create_table()
 
     with st.sidebar:
-        selected = option_menu(
-            menu_title="Main Menu",
-            options=["View Database", "Add New Item", "Edit Item"],
-            icons=["view-list", "plus-circle", "pencil"],
-            default_index=0,
+        selected = st.radio(
+            "Main Menu",
+            ["View Database", "Add New Item", "Edit Item"],
+            index=0,
         )
 
     if selected == "View Database":
@@ -193,7 +142,6 @@ def main():
             if analyze_button:
                 with st.spinner('Analyzing...'):
                     update_form_with_analysis(url)
-
 
             if add_item_submitted:
                 if not validators.url(url):
@@ -287,7 +235,11 @@ def main():
                                     description, title_translated, description_translated,
                                     tags, notes, languages
                                 )
-                                st.success(f"Item ID {item_id} updated successfully!")
+                                st.success("Item updated successfully!")
 
+        else:
+            st.info("No results found.")
+
+# Running the main function to start the app
 if __name__ == "__main__":
     main()
