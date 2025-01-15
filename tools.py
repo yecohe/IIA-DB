@@ -430,12 +430,14 @@ def analyze_url(url):
         languages = detect_language(title, description)
         # Translate title and description to English
         if languages and languages[0] != 'english':
-            title = translate_to_english(title)
-            description = translate_to_english(description)
-
+            translated_title = translate_to_english(title)
+            translated_description = translate_to_english(description)
+        else:
+            translated_title = ""
+            translated_description = ""
 
         # Return fetched and translated data
-        return title, description, translated_title if translated_title else "", translated_description if translated_description else "", languages
+        return title, description, translated_title, translated_description, languages
     except Exception as e:
         st.error(f"Error during analysis for URL '{url}': {e}")
         return "Error", "Error", "Error", "Error", ["Error"]
