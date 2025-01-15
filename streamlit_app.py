@@ -192,9 +192,8 @@ def main():
 
             if analyze_button:
                 with st.spinner('Analyzing...'):
-                    # Simulate thinking process (replace with actual URL analysis)
-                    time.sleep(2)  # Simulating some processing delay
                     update_form_with_analysis(url)
+
 
             if add_item_submitted:
                 if not validators.url(url):
