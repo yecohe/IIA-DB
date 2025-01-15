@@ -1,10 +1,9 @@
 import streamlit as st
 import sqlite3
-import validators
-from tools import analyze_url
-from streamlit_option_menu import option_menu
 import pandas as pd
-
+from streamlit_option_menu import option_menu
+from tools import analyze_url
+import validators
 
 # SQLite3 Database setup
 def create_connection():
@@ -57,13 +56,44 @@ def update_item(item_id, url, decision, decision_reason, source, title, descript
     conn.commit()
     conn.close()
 
-# Search for items in the database
-def search_items(search_term):
+# Function to search for items using regular search
+def regular_search(search_term):
     conn = create_connection()
     cursor = conn.cursor()
     cursor.execute('''
-        SELECT * FROM items WHERE title LIKE ? OR tags LIKE ?
-    ''', ('%' + search_term + '%', '%' + search_term + '%'))
+        SELECT * FROM items WHERE title LIKE ? OR url LIKE ? OR description LIKE ? OR tags LIKE ? OR languages LIKE ?
+    ''', ('%' + search_term + '%', '%' + search_term + '%', '%' + search_term + '%', '%' + search_term + '%', '%' + search_term + '%'))
+    results = cursor.fetchall()
+    conn.close()
+    return results
+
+# Function to search for items using advanced search
+def advanced_search(queries):
+    query_conditions = []
+    query_params = []
+
+    if queries.get('url'):
+        query_conditions.append('url LIKE ?')
+        query_params.append('%' + queries['url'] + '%')
+    if queries.get('title'):
+        query_conditions.append('title LIKE ?')
+        query_params.append('%' + queries['title'] + '%')
+    if queries.get('description'):
+        query_conditions.append('description LIKE ?')
+        query_params.append('%' + queries['description'] + '%')
+    if queries.get('tags'):
+        query_conditions.append('tags LIKE ?')
+        query_params.append('%' + queries['tags'] + '%')
+    if queries.get('languages'):
+        query_conditions.append('languages LIKE ?')
+        query_params.append('%' + queries['languages'] + '%')
+
+    # Combine conditions with "AND"
+    sql_query = 'SELECT * FROM items WHERE ' + ' AND '.join(query_conditions)
+    
+    conn = create_connection()
+    cursor = conn.cursor()
+    cursor.execute(sql_query, tuple(query_params))
     results = cursor.fetchall()
     conn.close()
     return results
@@ -95,7 +125,6 @@ def main():
             default_index=0,
         )
 
-
     if selected == "View Database":
         st.write("### View Database")
         
@@ -117,8 +146,6 @@ def main():
             st.dataframe(df)
         else:
             st.info("No items in the database.")
-        
-        
         
     elif selected == "Add New Item":
         st.write("### Add a New Item")
@@ -163,13 +190,37 @@ def main():
     elif selected == "Edit Item":
         st.write("### Edit Existing Items")
 
-        search_term = st.text_input("Search by keyword or tag")
-        search_button = st.button("Search")
+        search_option = st.radio("Select Search Option", ["Regular Search", "Advanced Search"])
 
-        if search_button:
-            results = search_items(search_term)
-        else:
-            results = []
+        if search_option == "Regular Search":
+            search_term = st.text_input("Enter a search term")
+            search_button = st.button("Search")
+
+            if search_button:
+                results = regular_search(search_term)
+            else:
+                results = []
+
+        elif search_option == "Advanced Search":
+            st.write("### Advanced Search")
+            url_query = st.text_input("URL")
+            title_query = st.text_input("Title")
+            description_query = st.text_input("Description")
+            tags_query = st.text_input("Tags")
+            languages_query = st.text_input("Languages")
+            search_button = st.button("Search")
+
+            if search_button:
+                queries = {
+                    "url": url_query,
+                    "title": title_query,
+                    "description": description_query,
+                    "tags": tags_query,
+                    "languages": languages_query,
+                }
+                results = advanced_search(queries)
+            else:
+                results = []
 
         if results:
             st.write("### Search Results")
