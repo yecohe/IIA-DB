@@ -76,10 +76,12 @@ def advanced_search(queries):
         query_conditions.append('url LIKE ?')
         query_params.append('%' + queries['url'] + '%')
     if queries.get('title'):
-        query_conditions.append('title LIKE ?')
+        query_conditions.append('(title LIKE ? OR title_translated LIKE ?)')
+        query_params.append('%' + queries['title'] + '%')
         query_params.append('%' + queries['title'] + '%')
     if queries.get('description'):
-        query_conditions.append('description LIKE ?')
+        query_conditions.append('(description LIKE ? OR description_translated LIKE ?)')
+        query_params.append('%' + queries['description'] + '%')
         query_params.append('%' + queries['description'] + '%')
     if queries.get('tags'):
         query_conditions.append('tags LIKE ?')
