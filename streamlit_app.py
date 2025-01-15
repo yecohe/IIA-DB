@@ -256,9 +256,7 @@ elif selected == "Add New Item":
         if analyze_button:
             if validators.url(url):
                 title, description, title_translated, description_translated, languages = analyze_url(url)
-                title = analyzed_title
-                description = analyzed_description
-                st.success(f"Data populated from the URL: {title}")
+                st.success(f"Data populated from the URL: {url}")
             else:
                 st.error("Please enter a valid URL to analyze.")
         
