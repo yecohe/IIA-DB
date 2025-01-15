@@ -3,6 +3,8 @@ import sqlite3
 import validators
 from tools import analyze_url
 from streamlit_option_menu import option_menu
+import pandas as pd
+
 
 # SQLite3 Database setup
 def create_connection():
