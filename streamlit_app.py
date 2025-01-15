@@ -191,7 +191,10 @@ def main():
             add_item_submitted = st.form_submit_button("Add Item")
 
             if analyze_button:
-                update_form_with_analysis(url)
+                with st.spinner('Analyzing...'):
+                    # Simulate thinking process (replace with actual URL analysis)
+                    time.sleep(2)  # Simulating some processing delay
+                    update_form_with_analysis(url)
 
             if add_item_submitted:
                 if not validators.url(url):
@@ -202,6 +205,13 @@ def main():
                         title_translated, description_translated, tags, notes, languages
                     )
                     st.success("New item added successfully!")
+
+                    # Reset form after submission
+                    st.session_state.title = ""
+                    st.session_state.description = ""
+                    st.session_state.title_translated = ""
+                    st.session_state.description_translated = ""
+                    st.session_state.languages = ""
 
     elif selected == "Edit Item":
         st.write("### Edit Existing Items")
