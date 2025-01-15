@@ -93,6 +93,7 @@ def main():
             default_index=0,
         )
 
+
     if selected == "View Database":
         st.write("### View Database")
         
@@ -104,31 +105,17 @@ def main():
         conn.close()
 
         if items:
-            # Display the items in a table
-            st.write("### Items List")
-            table_data = []
-            for item in items:
-                table_data.append([
-                    item[0],  # ID
-                    item[1],  # URL
-                    item[2],  # Decision
-                    item[3],  # Decision Reason
-                    item[4],  # Source
-                    item[5],  # Title
-                    item[6],  # Description
-                    item[7],  # Translated Title
-                    item[8],  # Translated Description
-                    item[9],  # Tags
-                    item[10],  # Notes
-                    item[11],  # Languages
-                ])
-            st.dataframe(table_data, columns=[
+            # Create a pandas DataFrame for better handling and visualization
+            df = pd.DataFrame(items, columns=[
                 'ID', 'URL', 'Decision', 'Decision Reason', 'Source',
                 'Title', 'Description', 'Translated Title', 'Translated Description',
                 'Tags', 'Notes', 'Languages'
             ])
+            # Display the table
+            st.dataframe(df)
         else:
             st.info("No items in the database.")
+        
         
         
     elif selected == "Add New Item":
