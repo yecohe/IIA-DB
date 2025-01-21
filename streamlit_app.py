@@ -31,7 +31,7 @@ def download_db_from_drive():
             done = False
             while not done:
                 status, done = downloader.next_chunk()
-                st.info(f"Download {int(status.progress() * 100)}% complete.")
+                print(f"Download {int(status.progress() * 100)}% complete.")
     except Exception as e:
         st.error(f"Error downloading the database from Google Drive: {e}")
         raise
@@ -194,6 +194,7 @@ if not authenticated:
 # Define apps
 apps = {
     "View Database": view_db,
+    "Add a New Item": add_new_item_form,
 }
 
 # Sidebar menu
@@ -224,3 +225,29 @@ if st.button('Save to Google Drive'):
         upload_db_to_drive()  # Upload the updated database to Google Drive
     except Exception as e:
         st.error(f"Error saving to Google Drive: {e}")
+
+# Function to add a new item via a form
+def add_new_item_form():
+    st.subheader("Add a New Item to the Database")
+
+    with st.form(key="new_item_form"):
+        url = st.text_input("URL")
+        decision = st.text_input("Decision")
+        decision_reason = st.text_input("Decision Reason")
+        source = st.text_input("Source")
+        title = st.text_input("Title")
+        description = st.text_area("Description")
+        title_translated = st.text_input("Title (Translated)")
+        description_translated = st.text_area("Description (Translated)")
+        tags = st.text_input("Tags")
+        notes = st.text_area("Notes")
+        languages = st.text_input("Languages (comma separated)")
+
+        submit_button = st.form_submit_button(label="Add Item")
+
+        if submit_button:
+            if url:
+                add_item(url, decision, decision_reason, source, title, description, title_translated, description_translated, tags, notes, languages)
+                st.success("Item successfully added!")
+            else:
+                st.error("Please provide the URL for the new item.")
