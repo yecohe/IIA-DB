@@ -9,6 +9,7 @@ from googleapiclient.http import MediaIoBaseDownload, MediaFileUpload
 import streamlit as st
 from streamlit_option_menu import option_menu
 from tools import analyze_url
+import validators
 
 # SQLite3 Database setup
 def create_connection():
