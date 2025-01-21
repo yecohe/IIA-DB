@@ -77,18 +77,19 @@ def create_table():
 def add_item(url, decision, decision_reason, source, title, description, title_translated, description_translated, tags, notes, languages):
     download_db_if_needed()
     try:
-        conn = sqlite3.connect('iiadb.db')
+        conn = create_connection()
         cursor = conn.cursor()
         cursor.execute(''' 
             INSERT INTO items (url, decision, decision_reason, source, title, description, title_translated, description_translated, tags, notes, languages)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (url, decision, decision_reason, source, title, description, title_translated, description_translated, tags, notes, languages))
-        conn.commit()
-        conn.close()
-
+        conn.commit()  # Save the changes
+        st.success("Item successfully added to the database!")
     except Exception as e:
-        st.error(f"Error while adding the item to the database: {e}")
-        raise
+        st.error(f"An error occurred while adding the item: {e}")
+    finally:
+        conn.close()  # Ensure the connection is closed
+
 
 # Update an existing item in the database
 def update_item(item_id, url, decision, decision_reason, source, title, description, title_translated, description_translated, tags, notes, languages):
