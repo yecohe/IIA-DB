@@ -7,10 +7,12 @@ from tools import analyze_url
 import validators
 from google.oauth2 import service_account
 import gspread
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaIoBaseDownload
 
 # SQLite3 Database setup
 def create_connection():
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect('iiadb.db')  # Use the downloaded database
     return conn
 
 # Create the items table if it doesn't exist
@@ -134,7 +136,7 @@ def update_form_with_analysis(url):
 # Function to view all items in the database
 def view_db():
     # Connect to the SQLite database
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect('iiadb.db')  # Use the downloaded database
     cursor = conn.cursor()
 
     # Query all records from the "items" table
@@ -188,17 +190,25 @@ if not authenticated:
                 st.sidebar.success("Credentials uploaded and authenticated successfully!")
                 authenticated = True
 
+                # Authenticate with Google API
+                service = build('drive', 'v3', credentials=credentials)
+
+                # Specify the file ID (replace with your own file ID)
+                file_id = st.secrets["db-id"]
+                request = service.files().get_media(fileId=file_id)
+                with open("iiadb.db", 'wb') as file:
+                    downloader = MediaIoBaseDownload(file, request)
+                    done = False
+                    while not done:
+                        status, done = downloader.next_chunk()
+                        print(f"Download {int(status.progress() * 100)}% complete.")
+            
             except Exception as e:
                 st.sidebar.error(f"Error processing credentials: {e}")
-
-
 
 # Define apps
 apps = {
     "View Database": view_db,  # Include the new view function
-    #"Add New Item": add_item.run if callable(add_item.run) else None,
-    #"Add New List": add_list.run if callable(add_list.run) else None,
-    #"Search and Edit": Search.run if callable(Search.run) else None,
 }
 
 # Sidebar menu
