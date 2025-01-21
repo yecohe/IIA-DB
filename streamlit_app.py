@@ -196,9 +196,9 @@ if not authenticated:
 # Define apps
 apps = {
     "View Database": view_db,  # Include the new view function
-    "Add New Item": add_item.run if callable(add_item.run) else None,
-    "Add New List": add_list.run if callable(add_list.run) else None,
-    "Search and Edit": Search.run if callable(Search.run) else None,
+    #"Add New Item": add_item.run if callable(add_item.run) else None,
+    #"Add New List": add_list.run if callable(add_list.run) else None,
+    #"Search and Edit": Search.run if callable(Search.run) else None,
 }
 
 # Sidebar menu
