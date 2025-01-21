@@ -1,11 +1,13 @@
 streamlit
+gspread
+google-auth
+google-auth-oauthlib=
+google-auth-httplib2
+google-api-python-client
 validators
 datetime
 streamlit_option_menu
 pip
-gspread
-googleapiclient.discovery
-googleapiclient.http
 datetime
 pytz
 requests
