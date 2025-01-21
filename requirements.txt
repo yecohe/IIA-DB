@@ -4,8 +4,8 @@ datetime
 streamlit_option_menu
 pip
 gspread
-googleapiclient
-oauth2client
+googleapiclient.discovery
+googleapiclient.http
 datetime
 pytz
 requests
