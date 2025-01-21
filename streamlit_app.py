@@ -267,7 +267,7 @@ def search_and_edit_items(mode="simple"):
                             ''', (url, decision, decision_reason, source, title, description, 
                                   title_translated, description_translated, tags, notes, languages, row[0]))
                             conn.commit()
-                            upload_db_to_drive()
+                            save_to_drive()
                             st.success(f"Item ID {row[0]} updated successfully!")
                         except Exception as e:
                             st.error(f"Error updating item ID {row[0]}: {e}")
