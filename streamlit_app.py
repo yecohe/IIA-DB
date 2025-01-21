@@ -40,20 +40,24 @@ def create_table():
 
 # Add a new item to the database
 def add_item(url, decision, decision_reason, source, title, description, title_translated, description_translated, tags, notes, languages):
-    conn = create_connection()
-    cursor = conn.cursor()
-    cursor.execute('''
-        INSERT INTO items (url, decision, decision_reason, source, title, description, title_translated, description_translated, tags, notes, languages)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (url, decision, decision_reason, source, title, description, title_translated, description_translated, tags, notes, languages))
-    conn.commit()
-    conn.close()
+    try:
+        conn = create_connection()
+        cursor = conn.cursor()
+        cursor.execute(''' 
+            INSERT INTO items (url, decision, decision_reason, source, title, description, title_translated, description_translated, tags, notes, languages)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (url, decision, decision_reason, source, title, description, title_translated, description_translated, tags, notes, languages))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        st.error(f"Error while adding the item to the database: {e}")
+        raise
 
 # Update an existing item in the database
 def update_item(item_id, url, decision, decision_reason, source, title, description, title_translated, description_translated, tags, notes, languages):
     conn = create_connection()
     cursor = conn.cursor()
-    cursor.execute('''
+    cursor.execute(''' 
         UPDATE items
         SET url = ?, decision = ?, decision_reason = ?, source = ?, title = ?, description = ?, title_translated = ?, description_translated = ?, tags = ?, notes = ?, languages = ?
         WHERE id = ?
@@ -65,7 +69,7 @@ def update_item(item_id, url, decision, decision_reason, source, title, descript
 def regular_search(search_term):
     conn = create_connection()
     cursor = conn.cursor()
-    cursor.execute('''
+    cursor.execute(''' 
         SELECT * FROM items 
         WHERE (title LIKE ? OR title_translated LIKE ?)
         OR (description LIKE ? OR description_translated LIKE ?)
@@ -133,6 +137,28 @@ def update_form_with_analysis(url):
     except Exception as e:
         st.error(f"Error analyzing URL: {e}")
 
+# Function to view all items in the database
+def view_db():
+    # Connect to the SQLite database
+    conn = sqlite3.connect('iiadb.db')  # Use the downloaded database
+    cursor = conn.cursor()
+
+    # Query all records from the "items" table
+    cursor.execute('SELECT * FROM items')
+    rows = cursor.fetchall()
+    conn.close()
+
+    # Convert the result into a DataFrame for better presentation in Streamlit
+    df = pd.DataFrame(rows, columns=[
+        "ID", "URL", "Decision", "Decision Reason", "Source", "Title", 
+        "Description", "Title Translated", "Description Translated", 
+        "Tags", "Notes", "Languages"
+    ])
+    
+    # Display the DataFrame in Streamlit
+    st.subheader("Database View")
+    st.dataframe(df)
+
 # Function to add a new item to the database through Streamlit form
 def add_new_item():
     st.subheader("Add New Item")
@@ -156,35 +182,17 @@ def add_new_item():
         
         # If the form is submitted, validate and add the item to the database
         if submit_button:
+            # Validate URL
             if not validators.url(url):
                 st.error("Please enter a valid URL.")
             else:
-                # Add the item to the database
-                add_item(url, decision, decision_reason, source, title, description, 
-                         title_translated, description_translated, tags, notes, languages)
-                st.success("Item added successfully!")
-                
-# Function to view all items in the database
-def view_db():
-    # Connect to the SQLite database
-    conn = sqlite3.connect('iiadb.db')  # Use the downloaded database
-    cursor = conn.cursor()
-
-    # Query all records from the "items" table
-    cursor.execute('SELECT * FROM items')
-    rows = cursor.fetchall()
-    conn.close()
-
-    # Convert the result into a DataFrame for better presentation in Streamlit
-    df = pd.DataFrame(rows, columns=[
-        "ID", "URL", "Decision", "Decision Reason", "Source", "Title", 
-        "Description", "Title Translated", "Description Translated", 
-        "Tags", "Notes", "Languages"
-    ])
-    
-    # Display the DataFrame in Streamlit
-    st.subheader("Database View")
-    st.dataframe(df)
+                try:
+                    # Add the item to the database
+                    add_item(url, decision, decision_reason, source, title, description, 
+                             title_translated, description_translated, tags, notes, languages)
+                    st.success("Item added successfully!")
+                except Exception as e:
+                    st.error(f"Error adding item to the database: {e}")
 
 # Initialize app options and authentication flag
 apps = {}
@@ -237,19 +245,17 @@ if not authenticated:
             except Exception as e:
                 st.sidebar.error(f"Error processing credentials: {e}")
 
-# Define apps
-apps = {
-    "View Database": view_db, 
-    "Add New Item": add_new_item,
-}
+# Add the new tool to the apps dictionary
+apps["Add New Item"] = add_new_item
+apps["View Database"] = view_db
 
-# Sidebar menu
+# Sidebar menu (with the new "Add New Item" option)
 if authenticated:
     with st.sidebar:
         selected_app_name = option_menu(
             "Tools Menu",
             options=list(apps.keys()),
-            icons=["database", "link", "filter", "search"],  # Customize icons
+            icons=["database", "link", "filter", "search", "plus-circle"],  # Add icon for new item
             menu_icon="tools",
             default_index=0,
             orientation="vertical"  # Sidebar menu
@@ -259,7 +265,7 @@ if authenticated:
     app_function = apps[selected_app_name]
     if callable(app_function):
         st.title(selected_app_name)
-        app_function()  # Call the selected function (view_db for "View Database")
+        app_function()  # Call the selected function (e.g., add_new_item)
     else:
         st.error(f"The app '{selected_app_name}' is not callable.")
 else:
