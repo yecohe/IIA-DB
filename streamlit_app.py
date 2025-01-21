@@ -1,9 +1,12 @@
 import streamlit as st
 import sqlite3
 import pandas as pd
+import json
 from streamlit_option_menu import option_menu
 from tools import analyze_url
 import validators
+from google.oauth2 import service_account
+import gspread
 
 # SQLite3 Database setup
 def create_connection():
@@ -128,166 +131,94 @@ def update_form_with_analysis(url):
     except Exception as e:
         st.error(f"Error analyzing URL: {e}")
 
-# Main Streamlit app
-def main():
-    # Initialize the database and create the table
-    create_table()
 
+# Initialize app options and authentication flag
+apps = {}
+authenticated = False
+client = None
+
+# Sidebar Header
+with st.sidebar:
+    st.header("Israeli Internet Archive")
+
+# Handle credentials upload
+if not authenticated:
     with st.sidebar:
-        selected = option_menu(
-            menu_title="Main Menu",
-            options=["View Database", "Add New Item", "Edit Item"],
-            icons=["view-list", "plus-circle", "pencil"],
-            default_index=0,
-        )
+        st.subheader("Upload Credentials File")
+        credentials_file = st.file_uploader("Please upload your JSON credentials file", type="json")
 
-    if selected == "View Database":
-        st.write("### View Database")
-        
-        # Fetch all items from the database
-        conn = create_connection()
-        cursor = conn.cursor()
-        cursor.execute('SELECT * FROM items')
-        items = cursor.fetchall()
-        conn.close()
+        if credentials_file is not None:
+            try:
+                # Define the scope for Google API
+                scope = [
+                    "https://spreadsheets.google.com/feeds", 
+                    "https://www.googleapis.com/auth/spreadsheets", 
+                    "https://www.googleapis.com/auth/drive"
+                ]
 
-        if items:
-            # Create a pandas DataFrame for better handling and visualization
-            df = pd.DataFrame(items, columns=[
-                'ID', 'URL', 'Decision', 'Decision Reason', 'Source',
-                'Title', 'Description', 'Translated Title', 'Translated Description',
-                'Tags', 'Notes', 'Languages'
-            ])
-            # Display the table
-            st.dataframe(df)
-        else:
-            st.info("No items in the database.")
-        
-    elif selected == "Add New Item":
-        st.write("### Add a New Item")
+                # Read credentials
+                credentials = service_account.Credentials.from_service_account_info(
+                    json.loads(credentials_file.read().decode("utf-8")), 
+                    scopes=scope
+                )
 
-        # Initialize session state variables for form
-        if "title" not in st.session_state:
-            st.session_state.title = ""
-            st.session_state.description = ""
-            st.session_state.title_translated = ""
-            st.session_state.description_translated = ""
-            st.session_state.languages = ""
+                # Authenticate with Google Sheets
+                client = gspread.authorize(credentials)
+                st.sidebar.success("Credentials uploaded and authenticated successfully!")
+                authenticated = True
 
-        with st.form("add_item_form"):
-            url = st.text_input("URL")
-            decision = st.selectbox("Decision", ["Yes", "Maybe", "No"])
-            decision_reason = st.text_input("Decision Reason")
-            source = st.text_input("Source")
-            title = st.text_input("Title", value=st.session_state.title)
-            description = st.text_area("Description", value=st.session_state.description)
-            title_translated = st.text_input("Translated Title", value=st.session_state.title_translated)
-            description_translated = st.text_area("Translated Description", value=st.session_state.description_translated)
-            tags = st.text_input("Tags (comma-separated)")
-            languages = st.text_input("Languages (comma-separated)", value=st.session_state.languages)
-            notes = st.text_area("Notes")
+            except Exception as e:
+                st.sidebar.error(f"Error processing credentials: {e}")
 
-            analyze_button = st.form_submit_button("Analyze")
-            add_item_submitted = st.form_submit_button("Add Item")
+# Function to view all items in the database
+def view_db():
+    # Connect to the SQLite database
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
 
-            if analyze_button:
-                with st.spinner('Analyzing...'):
-                    update_form_with_analysis(url)
+    # Query all records from the "items" table
+    cursor.execute('SELECT * FROM items')
+    rows = cursor.fetchall()
+    conn.close()
 
+    # Convert the result into a DataFrame for better presentation in Streamlit
+    df = pd.DataFrame(rows, columns=[
+        "ID", "URL", "Decision", "Decision Reason", "Source", "Title", 
+        "Description", "Title Translated", "Description Translated", 
+        "Tags", "Notes", "Languages"
+    ])
+    
+    # Display the DataFrame in Streamlit
+    st.subheader("Database View")
+    st.dataframe(df)
 
-            if add_item_submitted:
-                if not validators.url(url):
-                    st.error("Invalid URL. Please enter a valid URL.")
-                else:
-                    add_item(
-                        url, decision, decision_reason, source, title, description,
-                        title_translated, description_translated, tags, notes, languages
-                    )
-                    st.success("New item added successfully!")
+# Define apps
+apps = {
+    "View Database": view_db,  # Include the new view function
+    "Add New Item": add_item.run if callable(add_item.run) else None,
+    "Add New List": add_list.run if callable(add_list.run) else None,
+    "Search and Edit": Search.run if callable(Search.run) else None,
+}
 
-                    # Reset form after submission
-                    st.session_state.title = ""
-                    st.session_state.description = ""
-                    st.session_state.title_translated = ""
-                    st.session_state.description_translated = ""
-                    st.session_state.languages = ""
+# Sidebar menu
+with st.sidebar:
+    selected_app_name = option_menu(
+        "Tools Menu",
+        options=list(apps.keys()),
+        icons=["database","link", "filter", "search"],  # Customize icons
+        menu_icon="tools",
+        default_index=0,
+        orientation="vertical"  # Sidebar menu
+    )
 
-    elif selected == "Edit Item":
-        st.write("### Edit Existing Items")
+# Render the selected app
+app_function = apps[selected_app_name]
+if callable(app_function):
+    st.title(selected_app_name)
+    app_function()  # Call the selected function (view_db for "View Database")
+else:
+    st.error(f"The app '{selected_app_name}' is not callable.")
 
-        search_option = st.radio("Select Search Option", ["Regular Search", "Advanced Search"])
-
-        if search_option == "Regular Search":
-            search_term = st.text_input("Enter a search term")
-            search_button = st.button("Search")
-
-            if search_button:
-                results = regular_search(search_term)
-            else:
-                results = []
-
-        elif search_option == "Advanced Search":
-            st.write("### Advanced Search")
-            url_query = st.text_input("URL")
-            title_query = st.text_input("Title")
-            description_query = st.text_input("Description")
-            tags_query = st.text_input("Tags")
-            languages_query = st.text_input("Languages")
-            search_button = st.button("Search")
-
-            if search_button:
-                queries = {
-                    "url": url_query,
-                    "title": title_query,
-                    "description": description_query,
-                    "tags": tags_query,
-                    "languages": languages_query,
-                }
-                results = advanced_search(queries)
-            else:
-                results = []
-
-        if results:
-            st.write("### Search Results")
-            for item in results:
-                item_id = item[0]
-                if f"edit_{item_id}_url" not in st.session_state:
-                    st.session_state[f"edit_{item_id}_title"] = item[5]
-                    st.session_state[f"edit_{item_id}_description"] = item[6]
-                    st.session_state[f"edit_{item_id}_title_translated"] = item[7]
-                    st.session_state[f"edit_{item_id}_description_translated"] = item[8]
-                    st.session_state[f"edit_{item_id}_languages"] = item[11]
-
-                with st.expander(f"Item ID: {item_id} - {item[5]}"):
-                    with st.form(f"edit_form_{item_id}"):
-                        url = st.text_input("URL", value=item[1])
-                        decision = st.selectbox("Decision", ["Yes", "Maybe", "No"], index=["Yes", "Maybe", "No"].index(item[2]))
-                        decision_reason = st.text_input("Decision Reason", value=item[3])
-                        source = st.text_input("Source", value=item[4])
-                        title = st.text_input("Title", value=st.session_state[f"edit_{item_id}_title"])
-                        description = st.text_area("Description", value=st.session_state[f"edit_{item_id}_description"])
-                        title_translated = st.text_input("Translated Title", value=st.session_state[f"edit_{item_id}_title_translated"])
-                        description_translated = st.text_area("Translated Description", value=st.session_state[f"edit_{item_id}_description_translated"])
-                        tags = st.text_input("Tags", value=item[9])
-                        languages = st.text_input("Languages (comma-separated)", value=st.session_state[f"edit_{item_id}_languages"])
-                        notes = st.text_area("Notes", value=item[10])
-
-                        analyze_button = st.form_submit_button("Analyze")
-                        save_changes = st.form_submit_button("Save Changes")
-
-                        if analyze_button:
-                            update_form_with_analysis(url)
-
-                        if save_changes:
-                            if not validators.url(url):
-                                st.error("Invalid URL. Please enter a valid URL.")
-                            else:
-                                update_item(
-                                    item_id, url, decision, decision_reason, source, title,
-                                    description, title_translated, description_translated,
-                                    tags, notes, languages
-                                )
-                                st.success(f"Item ID {item_id} updated successfully!")
-
-if __name__ == "__main__":
-    main()
+# If no credentials are uploaded yet
+else:
+    st.warning("Please upload the credentials file to access the tools.")
