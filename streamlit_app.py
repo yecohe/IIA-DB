@@ -194,7 +194,7 @@ if not authenticated:
                 service = build('drive', 'v3', credentials=credentials)
 
                 # Specify the file ID (replace with your own file ID)
-                file_id = st.secrets["db-id"]
+                file_id = st.secrets["db_id"]
                 request = service.files().get_media(fileId=file_id)
                 with open("iiadb.db", 'wb') as file:
                     downloader = MediaIoBaseDownload(file, request)
