@@ -178,7 +178,88 @@ def save_to_drive():
         upload_db_to_drive()  # Upload the updated database to Google Drive
     except Exception as e:
         st.error(f"Error saving to Google Drive: {e}")
+
+# Function to perform a simple or advanced search
+def search_items(mode="simple", criteria=None):
+    """
+    Perform a search in the database.
+    
+    Args:
+    - mode: 'simple' or 'advanced'. Default is 'simple'.
+    - criteria: Dictionary of field names and values for advanced mode.
+    
+    Returns:
+    - A DataFrame with the search results.
+    """
+    download_db_if_needed()
+    try:
+        conn = create_connection()
+        cursor = conn.cursor()
         
+        if mode == "simple":
+            keyword = st.text_input("Enter a keyword to search:")
+            if st.button("Search"):
+                query = """
+                    SELECT * FROM items 
+                    WHERE url LIKE ? OR decision LIKE ? OR decision_reason LIKE ? 
+                    OR source LIKE ? OR title LIKE ? OR description LIKE ? 
+                    OR title_translated LIKE ? OR description_translated LIKE ? 
+                    OR tags LIKE ? OR notes LIKE ? OR languages LIKE ?
+                """
+                params = tuple([f"%{keyword}%"] * 11)
+                cursor.execute(query, params)
+        
+        elif mode == "advanced":
+            st.write("Specify your search criteria:")
+            fields = [
+                "url", "decision", "decision_reason", "source", "title", 
+                "description", "title_translated", "description_translated", 
+                "tags", "notes", "languages"
+            ]
+            criteria = {}
+            for field in fields:
+                value = st.text_input(f"{field.capitalize()}:")
+                if value:
+                    criteria[field] = value
+            
+            if st.button("Search"):
+                if criteria:
+                    conditions = " AND ".join([f"{field} LIKE ?" for field in criteria.keys()])
+                    query = f"SELECT * FROM items WHERE {conditions}"
+                    params = tuple([f"%{value}%" for value in criteria.values()])
+                    cursor.execute(query, params)
+                else:
+                    st.warning("Please provide at least one search criterion.")
+        
+        rows = cursor.fetchall()
+        conn.close()
+        
+        if rows:
+            df = pd.DataFrame(rows, columns=[
+                "ID", "URL", "Decision", "Decision Reason", "Source", "Title", 
+                "Description", "Title Translated", "Description Translated", 
+                "Tags", "Notes", "Languages"
+            ])
+            st.subheader("Search Results")
+            st.dataframe(df)
+        else:
+            st.info("No results found for your search.")
+    
+    except Exception as e:
+        st.error(f"An error occurred while searching: {e}")
+
+# Function to select search mode
+def search_mode_selector():
+    st.subheader("Search the Database")
+    mode = st.radio("Select search mode:", options=["Simple", "Advanced"], index=0)
+    if mode == "Simple":
+        search_items(mode="simple")
+    elif mode == "Advanced":
+        search_items(mode="advanced")
+
+
+
+
 # Initialize app options and authentication flag
 apps = {}
 authenticated = False
@@ -230,6 +311,7 @@ if not authenticated:
 apps = {
     "View Database": view_db,
     "Add a New Item": add_new_item_form,
+    "Search Database": search_mode_selector,
     "Save to Google Drive": save_to_drive  
 }
 
