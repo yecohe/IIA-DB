@@ -179,23 +179,20 @@ def save_to_drive():
     except Exception as e:
         st.error(f"Error saving to Google Drive: {e}")
 
-# Function to perform a simple or advanced search
-def search_items(mode="simple", criteria=None):
+# Function to perform a search and allow editing
+def search_and_edit_items(mode="simple"):
     """
-    Perform a search in the database.
+    Perform a search in the database and allow users to edit fields.
     
     Args:
     - mode: 'simple' or 'advanced'. Default is 'simple'.
-    - criteria: Dictionary of field names and values for advanced mode.
-    
-    Returns:
-    - A DataFrame with the search results.
     """
     download_db_if_needed()
     try:
         conn = create_connection()
         cursor = conn.cursor()
-        
+
+        # Perform a search
         if mode == "simple":
             keyword = st.text_input("Enter a keyword to search:")
             if st.button("Search"):
@@ -208,7 +205,6 @@ def search_items(mode="simple", criteria=None):
                 """
                 params = tuple([f"%{keyword}%"] * 11)
                 cursor.execute(query, params)
-        
         elif mode == "advanced":
             st.write("Specify your search criteria:")
             fields = [
@@ -230,10 +226,12 @@ def search_items(mode="simple", criteria=None):
                     cursor.execute(query, params)
                 else:
                     st.warning("Please provide at least one search criterion.")
+        else:
+            st.warning("Invalid search mode.")
+            return
         
+        # Fetch and display search results
         rows = cursor.fetchall()
-        conn.close()
-        
         if rows:
             df = pd.DataFrame(rows, columns=[
                 "ID", "URL", "Decision", "Decision Reason", "Source", "Title", 
@@ -242,20 +240,51 @@ def search_items(mode="simple", criteria=None):
             ])
             st.subheader("Search Results")
             st.dataframe(df)
-        else:
-            st.info("No results found for your search.")
-    
-    except Exception as e:
-        st.error(f"An error occurred while searching: {e}")
 
-# Function to select search mode
-def search_mode_selector():
-    st.subheader("Search the Database")
+            # Allow editing of each row
+            for row in rows:
+                with st.expander(f"Edit Item ID: {row[0]}"):
+                    url = st.text_input("URL", value=row[1], key=f"url_{row[0]}")
+                    decision = st.text_input("Decision", value=row[2], key=f"decision_{row[0]}")
+                    decision_reason = st.text_input("Decision Reason", value=row[3], key=f"reason_{row[0]}")
+                    source = st.text_input("Source", value=row[4], key=f"source_{row[0]}")
+                    title = st.text_input("Title", value=row[5], key=f"title_{row[0]}")
+                    description = st.text_area("Description", value=row[6], key=f"description_{row[0]}")
+                    title_translated = st.text_input("Title (Translated)", value=row[7], key=f"title_trans_{row[0]}")
+                    description_translated = st.text_area("Description (Translated)", value=row[8], key=f"description_trans_{row[0]}")
+                    tags = st.text_input("Tags", value=row[9], key=f"tags_{row[0]}")
+                    notes = st.text_area("Notes", value=row[10], key=f"notes_{row[0]}")
+                    languages = st.text_input("Languages", value=row[11], key=f"languages_{row[0]}")
+
+                    if st.button(f"Save Changes for ID {row[0]}", key=f"save_{row[0]}"):
+                        try:
+                            cursor.execute(''' 
+                                UPDATE items
+                                SET url = ?, decision = ?, decision_reason = ?, source = ?, title = ?, 
+                                    description = ?, title_translated = ?, description_translated = ?, 
+                                    tags = ?, notes = ?, languages = ?
+                                WHERE id = ?
+                            ''', (url, decision, decision_reason, source, title, description, 
+                                  title_translated, description_translated, tags, notes, languages, row[0]))
+                            conn.commit()
+                            st.success(f"Item ID {row[0]} updated successfully!")
+                        except Exception as e:
+                            st.error(f"Error updating item ID {row[0]}: {e}")
+        else:
+            st.info("No results found.")
+    except Exception as e:
+        st.error(f"An error occurred: {e}")
+    finally:
+        conn.close()
+
+# Update search mode selector to include editing
+def search_and_edit_mode_selector():
+    st.subheader("Search and Edit the Database")
     mode = st.radio("Select search mode:", options=["Simple", "Advanced"], index=0)
     if mode == "Simple":
-        search_items(mode="simple")
+        search_and_edit_items(mode="simple")
     elif mode == "Advanced":
-        search_items(mode="advanced")
+        search_and_edit_items(mode="advanced")
 
 
 
@@ -311,7 +340,7 @@ if not authenticated:
 apps = {
     "View Database": view_db,
     "Add a New Item": add_new_item_form,
-    "Search Database": search_mode_selector,
+    "Search and Edit": search_and_edit_mode_selector,
     "Save to Google Drive": save_to_drive  
 }
 
