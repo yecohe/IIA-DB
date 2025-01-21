@@ -250,8 +250,8 @@ if not authenticated:
 # Define apps
 apps = {
     "View Database": view_db,
-    "Add a New Item": add_new_item_form,
-    "Save to Google Drive": save_to_drive  
+    "Add a New Item": add_new_item_form
+    #"Save to Google Drive": save_to_drive  
 }
 
 # Sidebar menu
