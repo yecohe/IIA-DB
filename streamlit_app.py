@@ -131,6 +131,27 @@ def update_form_with_analysis(url):
     except Exception as e:
         st.error(f"Error analyzing URL: {e}")
 
+# Function to view all items in the database
+def view_db():
+    # Connect to the SQLite database
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+
+    # Query all records from the "items" table
+    cursor.execute('SELECT * FROM items')
+    rows = cursor.fetchall()
+    conn.close()
+
+    # Convert the result into a DataFrame for better presentation in Streamlit
+    df = pd.DataFrame(rows, columns=[
+        "ID", "URL", "Decision", "Decision Reason", "Source", "Title", 
+        "Description", "Title Translated", "Description Translated", 
+        "Tags", "Notes", "Languages"
+    ])
+    
+    # Display the DataFrame in Streamlit
+    st.subheader("Database View")
+    st.dataframe(df)
 
 # Initialize app options and authentication flag
 apps = {}
@@ -170,27 +191,7 @@ if not authenticated:
             except Exception as e:
                 st.sidebar.error(f"Error processing credentials: {e}")
 
-# Function to view all items in the database
-def view_db():
-    # Connect to the SQLite database
-    conn = sqlite3.connect('database.db')
-    cursor = conn.cursor()
 
-    # Query all records from the "items" table
-    cursor.execute('SELECT * FROM items')
-    rows = cursor.fetchall()
-    conn.close()
-
-    # Convert the result into a DataFrame for better presentation in Streamlit
-    df = pd.DataFrame(rows, columns=[
-        "ID", "URL", "Decision", "Decision Reason", "Source", "Title", 
-        "Description", "Title Translated", "Description Translated", 
-        "Tags", "Notes", "Languages"
-    ])
-    
-    # Display the DataFrame in Streamlit
-    st.subheader("Database View")
-    st.dataframe(df)
 
 # Define apps
 apps = {
@@ -201,24 +202,23 @@ apps = {
 }
 
 # Sidebar menu
-with st.sidebar:
-    selected_app_name = option_menu(
-        "Tools Menu",
-        options=list(apps.keys()),
-        icons=["database","link", "filter", "search"],  # Customize icons
-        menu_icon="tools",
-        default_index=0,
-        orientation="vertical"  # Sidebar menu
-    )
+if authenticated:
+    with st.sidebar:
+        selected_app_name = option_menu(
+            "Tools Menu",
+            options=list(apps.keys()),
+            icons=["database", "link", "filter", "search"],  # Customize icons
+            menu_icon="tools",
+            default_index=0,
+            orientation="vertical"  # Sidebar menu
+        )
 
-# Render the selected app
-app_function = apps[selected_app_name]
-if callable(app_function):
-    st.title(selected_app_name)
-    app_function()  # Call the selected function (view_db for "View Database")
-else:
-    st.error(f"The app '{selected_app_name}' is not callable.")
-
-# If no credentials are uploaded yet
+    # Render the selected app
+    app_function = apps[selected_app_name]
+    if callable(app_function):
+        st.title(selected_app_name)
+        app_function()  # Call the selected function (view_db for "View Database")
+    else:
+        st.error(f"The app '{selected_app_name}' is not callable.")
 else:
     st.warning("Please upload the credentials file to access the tools.")
