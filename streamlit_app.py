@@ -41,7 +41,6 @@ def create_table():
     
 # Function to view all items in the database
 def view_db():
-    download_db_if_needed()
     try:
         conn = create_connection()
         cursor = conn.cursor()
@@ -60,6 +59,7 @@ def view_db():
     except Exception as e:
         st.error(f"Error: {e}")
         raise
+        
 # Add a new item to the database
 def add_item(url, decision, decision_reason, source, title, description, title_translated, description_translated, tags, notes, languages):
     conn = create_connection()
