@@ -95,7 +95,7 @@ def add_item(url, decision, decision_reason, source, title, description, title_t
 def update_item(item_id, url, decision, decision_reason, source, title, description, title_translated, description_translated, tags, notes, languages):
     download_db_if_needed()
     try:
-        conn = sqlite3.connect('iiadb.db')
+        conn = create_connection()
         cursor = conn.cursor()
         cursor.execute(''' 
             UPDATE items
@@ -113,7 +113,7 @@ def update_item(item_id, url, decision, decision_reason, source, title, descript
 def view_db():
     download_db_if_needed()
     try:
-        conn = sqlite3.connect('iiadb.db')
+        conn = create_connection()
         cursor = conn.cursor()
         cursor.execute('SELECT * FROM items')
         rows = cursor.fetchall()
