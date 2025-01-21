@@ -76,8 +76,6 @@ def create_table():
 # Add a new item to the database
 def add_item(url, decision, decision_reason, source, title, description, title_translated, description_translated, tags, notes, languages):
     try:
-        download_db_if_needed()  # Ensure the database is downloaded
-
         conn = sqlite3.connect('iiadb.db')
         cursor = conn.cursor()
         cursor.execute(''' 
@@ -94,8 +92,6 @@ def add_item(url, decision, decision_reason, source, title, description, title_t
 # Update an existing item in the database
 def update_item(item_id, url, decision, decision_reason, source, title, description, title_translated, description_translated, tags, notes, languages):
     try:
-        download_db_if_needed()  # Ensure the database is downloaded
-
         conn = sqlite3.connect('iiadb.db')
         cursor = conn.cursor()
         cursor.execute(''' 
@@ -112,8 +108,6 @@ def update_item(item_id, url, decision, decision_reason, source, title, descript
 
 # Function to view all items in the database
 def view_db():
-    download_db_if_needed()  # Ensure the database is downloaded
-
     conn = sqlite3.connect('iiadb.db')
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM items')
@@ -219,8 +213,8 @@ if not authenticated:
                     done = False
                     while not done:
                         status, done = downloader.next_chunk()
-                        print(f"Download {int(status.progress() * 100)}% complete.")
-            
+                        st.info(f"Download {int(status.progress() * 100)}% complete.")
+                download_db_if_needed()
             except Exception as e:
                 st.sidebar.error(f"Error processing credentials: {e}")
 
@@ -228,7 +222,7 @@ if not authenticated:
 apps = {
     "View Database": view_db,
     "Add a New Item": add_new_item_form,
-    "Save to Google Drive": save_to_drive  # Add the "Save to Google Drive" function here
+    "Save to Google Drive": save_to_drive  
 }
 
 # Sidebar menu
@@ -237,7 +231,7 @@ if authenticated:
         selected_app_name = option_menu(
             "Tools Menu",
             options=list(apps.keys()),
-            icons=["database", "link", "filter", "search"],  # Customize icons
+            icons=["database", "link", "filter", "search", "save"], 
             menu_icon="tools",
             default_index=0,
             orientation="vertical"
