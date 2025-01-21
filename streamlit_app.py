@@ -143,6 +143,33 @@ def update_form_with_analysis(url):
     except Exception as e:
         st.error(f"Error analyzing URL: {e}")
 
+# Function to add a new item via a form
+def add_new_item_form():
+    st.subheader("Add a New Item to the Database")
+
+    with st.form(key="new_item_form"):
+        url = st.text_input("URL")
+        decision = st.text_input("Decision")
+        decision_reason = st.text_input("Decision Reason")
+        source = st.text_input("Source")
+        title = st.text_input("Title")
+        description = st.text_area("Description")
+        title_translated = st.text_input("Title (Translated)")
+        description_translated = st.text_area("Description (Translated)")
+        tags = st.text_input("Tags")
+        notes = st.text_area("Notes")
+        languages = st.text_input("Languages (comma separated)")
+
+        submit_button = st.form_submit_button(label="Add Item")
+
+        if submit_button:
+            if url:
+                add_item(url, decision, decision_reason, source, title, description, title_translated, description_translated, tags, notes, languages)
+                st.success("Item successfully added!")
+            else:
+                st.error("Please provide the URL for the new item.")
+
+
 # Initialize app options and authentication flag
 apps = {}
 authenticated = False
@@ -226,28 +253,3 @@ if st.button('Save to Google Drive'):
     except Exception as e:
         st.error(f"Error saving to Google Drive: {e}")
 
-# Function to add a new item via a form
-def add_new_item_form():
-    st.subheader("Add a New Item to the Database")
-
-    with st.form(key="new_item_form"):
-        url = st.text_input("URL")
-        decision = st.text_input("Decision")
-        decision_reason = st.text_input("Decision Reason")
-        source = st.text_input("Source")
-        title = st.text_input("Title")
-        description = st.text_area("Description")
-        title_translated = st.text_input("Title (Translated)")
-        description_translated = st.text_area("Description (Translated)")
-        tags = st.text_input("Tags")
-        notes = st.text_area("Notes")
-        languages = st.text_input("Languages (comma separated)")
-
-        submit_button = st.form_submit_button(label="Add Item")
-
-        if submit_button:
-            if url:
-                add_item(url, decision, decision_reason, source, title, description, title_translated, description_translated, tags, notes, languages)
-                st.success("Item successfully added!")
-            else:
-                st.error("Please provide the URL for the new item.")
