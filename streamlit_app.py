@@ -13,7 +13,7 @@ import validators
 
 # SQLite3 Database setup
 def create_connection():
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect('iiadb.db')
     return conn
 
 # Create the items table if it doesn't exist
@@ -38,7 +38,28 @@ def create_table():
     ''')
     conn.commit()
     conn.close()
-
+    
+# Function to view all items in the database
+def view_db():
+    download_db_if_needed()
+    try:
+        conn = create_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM items')
+        rows = cursor.fetchall()
+        conn.close()
+    
+        df = pd.DataFrame(rows, columns=[
+            "ID", "URL", "Decision", "Decision Reason", "Source", "Title", 
+            "Description", "Title Translated", "Description Translated", 
+            "Tags", "Notes", "Languages"
+        ])
+        
+        st.subheader("Database View")
+        st.dataframe(df)
+    except Exception as e:
+        st.error(f"Error: {e}")
+        raise
 # Add a new item to the database
 def add_item(url, decision, decision_reason, source, title, description, title_translated, description_translated, tags, notes, languages):
     conn = create_connection()
