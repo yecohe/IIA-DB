@@ -133,6 +133,37 @@ def update_form_with_analysis(url):
     except Exception as e:
         st.error(f"Error analyzing URL: {e}")
 
+# Function to add a new item to the database through Streamlit form
+def add_new_item():
+    st.subheader("Add New Item")
+    
+    # Define form fields for the new item
+    with st.form("Add New Item Form"):
+        url = st.text_input("URL")
+        decision = st.selectbox("Decision", ["Approved", "Rejected", "Pending"])
+        decision_reason = st.text_area("Decision Reason")
+        source = st.text_input("Source")
+        title = st.text_input("Title")
+        description = st.text_area("Description")
+        title_translated = st.text_input("Translated Title")
+        description_translated = st.text_area("Translated Description")
+        tags = st.text_input("Tags")
+        notes = st.text_area("Notes")
+        languages = st.text_input("Languages (comma-separated)")
+        
+        # Submit button to add the item to the database
+        submit_button = st.form_submit_button("Add Item")
+        
+        # If the form is submitted, validate and add the item to the database
+        if submit_button:
+            if not validators.url(url):
+                st.error("Please enter a valid URL.")
+            else:
+                # Add the item to the database
+                add_item(url, decision, decision_reason, source, title, description, 
+                         title_translated, description_translated, tags, notes, languages)
+                st.success("Item added successfully!")
+                
 # Function to view all items in the database
 def view_db():
     # Connect to the SQLite database
@@ -208,7 +239,8 @@ if not authenticated:
 
 # Define apps
 apps = {
-    "View Database": view_db,  # Include the new view function
+    "View Database": view_db, 
+    "Add New Item": add_new_item,
 }
 
 # Sidebar menu
