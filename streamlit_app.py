@@ -75,6 +75,7 @@ def create_table():
 
 # Add a new item to the database
 def add_item(url, decision, decision_reason, source, title, description, title_translated, description_translated, tags, notes, languages):
+    download_db_if_needed()
     try:
         conn = sqlite3.connect('iiadb.db')
         cursor = conn.cursor()
@@ -91,6 +92,7 @@ def add_item(url, decision, decision_reason, source, title, description, title_t
 
 # Update an existing item in the database
 def update_item(item_id, url, decision, decision_reason, source, title, description, title_translated, description_translated, tags, notes, languages):
+    download_db_if_needed()
     try:
         conn = sqlite3.connect('iiadb.db')
         cursor = conn.cursor()
@@ -108,20 +110,25 @@ def update_item(item_id, url, decision, decision_reason, source, title, descript
 
 # Function to view all items in the database
 def view_db():
-    conn = sqlite3.connect('iiadb.db')
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM items')
-    rows = cursor.fetchall()
-    conn.close()
-
-    df = pd.DataFrame(rows, columns=[
-        "ID", "URL", "Decision", "Decision Reason", "Source", "Title", 
-        "Description", "Title Translated", "Description Translated", 
-        "Tags", "Notes", "Languages"
-    ])
+    download_db_if_needed()
+    try:
+        conn = sqlite3.connect('iiadb.db')
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM items')
+        rows = cursor.fetchall()
+        conn.close()
     
-    st.subheader("Database View")
-    st.dataframe(df)
+        df = pd.DataFrame(rows, columns=[
+            "ID", "URL", "Decision", "Decision Reason", "Source", "Title", 
+            "Description", "Title Translated", "Description Translated", 
+            "Tags", "Notes", "Languages"
+        ])
+        
+        st.subheader("Database View")
+        st.dataframe(df)
+    except Exception as e:
+        st.error(f"Error: {e}")
+        raise
 
 # Function to update form fields with analyzed data
 def update_form_with_analysis(url):
@@ -214,7 +221,6 @@ if not authenticated:
                     while not done:
                         status, done = downloader.next_chunk()
                         st.info(f"Download {int(status.progress() * 100)}% complete.")
-                download_db_if_needed()
             except Exception as e:
                 st.sidebar.error(f"Error processing credentials: {e}")
 
