@@ -201,15 +201,16 @@ def update_form_with_analysis(url):
         analyzed_data = analyze_url(url, good_words, bad_words)
         if analyzed_data:
             title, description, translated_title, translated_description, languages, decision, reason = analyzed_data
-            st.info(title)
-            st.session_state.title = title
-            st.session_state.description = description
-            st.session_state.title_translated = translated_title
-            st.session_state.description_translated = translated_description
-            st.session_state.languages = ", ".join(languages)
-            st.session_state.decision = decision
-            st.session_state.decision_reason = reason
-            st.session_state.notes = "Automatically analyzed"
+            
+            st.session_state["title"] = title
+            st.session_state["description"] = description
+            st.session_state["title_translated"] = translated_title
+            st.session_state["description_translated"] = translated_description
+            st.session_state["languages"] = ", ".join(languages)
+            st.session_state["decision"] = decision
+            st.session_state["decision_reason"] = reason
+            st.session_state["notes"] = "Automatically analyzed"
+            st.experimental_rerun()
     except Exception as e:
         st.error(f"Error analyzing URL: {e}")
 
@@ -217,19 +218,28 @@ def update_form_with_analysis(url):
 def add_new_item_form():
     st.subheader("Add a New Item to the Database")
 
+    if "title" not in st.session_state:
+        st.session_state["title"] = ""
+        st.session_state["description"] = ""
+        st.session_state["title_translated"] = ""
+        st.session_state["description_translated"] = ""
+        st.session_state["languages"] = ""
+        st.session_state["decision"] = ""
+        st.session_state["decision_reason"] = ""
+        st.session_state["notes"] = ""
+
     with st.form(key="new_item_form"):
         url = st.text_input("URL")
-        decision = st.text_input("Decision")
-        decision_reason = st.text_input("Decision Reason")
+        decision = st.text_input("Decision", value=st.session_state["decision"])
+        decision_reason = st.text_input("Decision Reason", value=st.session_state["decision_reason"])
         source = st.text_input("Source")
-        title = st.text_input("Title")
-        description = st.text_area("Description")
-        title_translated = st.text_input("Title (Translated)")
-        description_translated = st.text_area("Description (Translated)")
+        title = st.text_input("Title", value=st.session_state["title"])
+        description = st.text_area("Description", value=st.session_state["description"])
+        title_translated = st.text_input("Title (Translated)", value=st.session_state["title_translated"])
+        description_translated = st.text_area("Description (Translated)", value=st.session_state["description_translated"])
         tags = st.text_input("Tags")
-        notes = st.text_area("Notes")
-        languages = st.text_input("Languages (comma separated)")
-
+        notes = st.text_area("Notes", value=st.session_state["notes"])
+        languages = st.text_input("Languages (comma separated)", value=st.session_state["languages"])
 
         analyze_button = st.form_submit_button("Analyze")
         add_item_submitted = st.form_submit_button("Add Item")
@@ -247,6 +257,7 @@ def add_new_item_form():
                     title_translated, description_translated, tags, notes, languages
                 )
                 st.success("New item added successfully!")
+                st.experimental_rerun()
 
 # Save to Google Drive function
 def save_to_drive():
