@@ -429,7 +429,7 @@ def analyze_url(url, good_keywords, bad_keywords):
         if languages and languages[0] != 'english':
             translated_title = translate_to_english(title)
             translated_description = translate_to_english(description)
-             score, details = calculate_score(url, translated_title, translated_description, languages, good_keywords, bad_keywords)
+            score, details = calculate_score(url, translated_title, translated_description, languages, good_keywords, bad_keywords)
         else:
             translated_title = ""
             translated_description = ""
