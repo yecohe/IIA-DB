@@ -230,7 +230,7 @@ def add_new_item_form():
 
     with st.form(key="new_item_form"):
         url = st.text_input("URL")
-        col1, col2, col3 = st.columns(2)
+        col1, col2 = st.columns(2)
         with col1:
             decision = st.selectbox("Decision", ["Yes", "Maybe", "No"], index=["Yes", "Maybe", "No"].index(st.session_state["decision"]))
         with col2:
