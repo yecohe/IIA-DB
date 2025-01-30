@@ -127,7 +127,7 @@ def manage_words_lists():
     # Add a word
     with st.form("add_word_form"):
         word = st.text_input("Word")
-        word_type = st.text_input("Type")
+        word_type = st.selectbox("Type", ["Good", "Bad"])
         submit = st.form_submit_button("Add Word")
         if submit:
             cursor.execute("INSERT INTO words_lists (word, type) VALUES (?, ?)", (word, word_type))
@@ -145,7 +145,7 @@ def manage_words_lists():
     for row in words:
         with st.expander(f"Edit/Delete Word ID: {row[0]}"):
             new_word = st.text_input("Word", value=row[1], key=f"word_{row[0]}")
-            new_type = st.text_input("Type", value=row[2], key=f"type_{row[0]}")
+            new_type = st.selectbox("Type", ["Good", "Bad"], index=["Good", "Bad"].index(row[2]), key=f"type_{row[0]}")
             if st.button(f"Update Word ID {row[0]}", key=f"update_{row[0]}"):
                 cursor.execute("UPDATE words_lists SET word = ?, type = ? WHERE id = ?", (new_word, new_type, row[0]))
                 conn.commit()
