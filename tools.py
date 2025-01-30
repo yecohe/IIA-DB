@@ -259,7 +259,6 @@ def translate_to_english(input):
 def count_keywords(title, description, good_keywords, bad_keywords):
     """Count occurrences of good and bad keywords in the title and description."""
     try:
-        st.info("hi count_keywords")
         combined_text = combine_text(title, description)
         st.info("combined_text:", combined_text)
         st.info(good_keywords, "bad", bad_keywords)
@@ -275,7 +274,6 @@ def count_keywords(title, description, good_keywords, bad_keywords):
 # Function to calculate score
 def calculate_score(url, title, description, languages, good_keywords, bad_keywords):
     try:
-        st.info("hi calculate_score")
         good_count, bad_count = count_keywords(title, description, good_keywords, bad_keywords)
         if url.endswith(".il") or url.endswith(".il/"):
             decision = "Yes"
