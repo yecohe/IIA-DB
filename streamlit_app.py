@@ -159,6 +159,18 @@ def manage_words_lists():
                 upload_db_to_drive()
 
     conn.close()
+# Function to fetch good and bad words from the database
+def fetch_good_bad_words():
+    conn = create_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT word, type FROM words_lists")
+    words = cursor.fetchall()
+    conn.close()
+    
+    good_words = [word[0] for word in words if word[1] == 'Good']
+    bad_words = [word[0] for word in words if word[1] == 'Bad']
+    
+    return good_words, bad_words
     
 # Function to view all items in the database
 def view_db():
@@ -184,6 +196,7 @@ def view_db():
 
 # Function to update form fields with analyzed data
 def update_form_with_analysis(url):
+    good_words, bad_words = fetch_good_bad_words()
     try:
         analyzed_data = analyze_url(url, good_keywords, bad_keywords)
         if analyzed_data:
