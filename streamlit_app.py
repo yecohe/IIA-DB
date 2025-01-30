@@ -91,6 +91,8 @@ def add_item(url, decision, decision_reason, source, title, description, title_t
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (url, decision, decision_reason, source, title, description, title_translated, description_translated, tags, notes, languages))
         conn.commit()  # Save the changes
+        conn.flush()
+        conn.close()
         st.success("Item successfully added to the database!")
     except Exception as e:
         st.error(f"An error occurred while adding the item: {e}")
