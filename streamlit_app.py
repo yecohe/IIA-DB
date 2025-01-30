@@ -84,7 +84,7 @@ def create_table():
 # Add a new item to the database
 def add_item(url, decision, decision_reason, source, title, description, title_translated, description_translated, tags, notes, languages):
     try:
-        with get_connection() as conn:  # Context manager handles closing the connection automatically
+        with create_connection() as conn:  # Context manager handles closing the connection automatically
             cursor = conn.cursor()
             cursor.execute(''' 
                 INSERT INTO items (url, decision, decision_reason, source, title, description, title_translated, description_translated, tags, notes, languages)
