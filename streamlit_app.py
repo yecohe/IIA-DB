@@ -224,13 +224,13 @@ def add_new_item_form():
         st.session_state["title_translated"] = ""
         st.session_state["description_translated"] = ""
         st.session_state["languages"] = ""
-        st.session_state["decision"] = ""
+        st.session_state["decision"] = "Maybe"
         st.session_state["decision_reason"] = ""
         st.session_state["notes"] = ""
 
     with st.form(key="new_item_form"):
         url = st.text_input("URL")
-        decision = st.text_input("Decision", value=st.session_state["decision"])
+        decision = st.selectbox("Decision", ["Yes", "Maybe", "No"], index=["Yes", "Maybe", "No"].index(st.session_state["decision"]))
         decision_reason = st.text_input("Decision Reason", value=st.session_state["decision_reason"])
         source = st.text_input("Source")
         title = st.text_input("Title", value=st.session_state["title"])
@@ -241,15 +241,17 @@ def add_new_item_form():
         notes = st.text_area("Notes", value=st.session_state["notes"])
         languages = st.text_input("Languages (comma separated)", value=st.session_state["languages"])
 
-        analyze_button = st.form_submit_button("Analyze")
-        add_item_submitted = st.form_submit_button("Add Item")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            analyze_button = st.form_submit_button("Analyze")
+        with col2:
+            add_item_submitted = st.form_submit_button("Add Item")
+        with col3:
+            clear_button = st.form_submit_button("Clear")
         
         if analyze_button:
-            if not validators.url(url):
-                st.error("Invalid URL. Please enter a valid URL.")
-            else:
-                with st.spinner('Analyzing...'):
-                    update_form_with_analysis(url)
+            with st.spinner('Analyzing...'):
+                update_form_with_analysis(url)
 
         if add_item_submitted:
             if not validators.url(url):
@@ -260,8 +262,13 @@ def add_new_item_form():
                     title_translated, description_translated, tags, notes, languages
                 )
                 st.success("New item added successfully!")
+                st.session_state.clear()
                 st.rerun()
 
+        if clear_button:
+            st.session_state.clear()
+            st.rerun()
+            
 # Save to Google Drive function
 def save_to_drive():
     try:
