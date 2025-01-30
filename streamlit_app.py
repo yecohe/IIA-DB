@@ -252,11 +252,11 @@ def add_new_item_form():
         with col1:
             add_item_submitted = st.form_submit_button("Add Item")
         with col2:
-            analyze_button_bottom = st.form_submit_button("Analyze")  
+            analyze_button_bottom = st.form_submit_button("Analyze?")  
         with col3:
             clear_button = st.form_submit_button("Clear")
         
-        if analyze_button:
+        if analyze_button or analyze_button_bottom:
             with st.spinner('Analyzing...'):
                 update_form_with_analysis(url)
 
