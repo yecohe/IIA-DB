@@ -230,7 +230,7 @@ def add_new_item_form():
 
     with st.form(key="new_item_form"):
         col1, col2 = st.columns([3, 1])
-         with col1:
+        with col1:
             url = st.text_input("URL")
         with col2:
             analyze_button = st.form_submit_button("Analyze")            
