@@ -84,15 +84,15 @@ def create_table():
 # Add a new item to the database
 def add_item(url, decision, decision_reason, source, title, description, title_translated, description_translated, tags, notes, languages):
     try:
-        with create_connection() as conn:  # Context manager handles closing the connection automatically
-            cursor = conn.cursor()
-            cursor.execute(''' 
-                INSERT INTO items (url, decision, decision_reason, source, title, description, title_translated, description_translated, tags, notes, languages)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (url, decision, decision_reason, source, title, description, title_translated, description_translated, tags, notes, languages))
-            conn.commit()  # Save the changes
-            conn.close()
-            st.success("Item successfully added to the database!")
+        conn = create_connection()
+        cursor = conn.cursor()
+        cursor.execute(''' 
+            INSERT INTO items (url, decision, decision_reason, source, title, description, title_translated, description_translated, tags, notes, languages)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (url, decision, decision_reason, source, title, description, title_translated, description_translated, tags, notes, languages))
+        conn.commit()  # Save the changes
+        conn.close()
+        st.success("Item successfully added to the database!")
     except Exception as e:
         st.error(f"An error occurred while adding the item: {e}")
 
