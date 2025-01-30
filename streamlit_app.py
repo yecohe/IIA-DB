@@ -159,6 +159,7 @@ def manage_words_lists():
                 upload_db_to_drive()
 
     conn.close()
+    
 # Function to fetch good and bad words from the database
 def fetch_good_bad_words():
     conn = create_connection()
@@ -169,7 +170,6 @@ def fetch_good_bad_words():
     
     good_words = [word[0] for word in words if word[1] == 'Good']
     bad_words = [word[0] for word in words if word[1] == 'Bad']
-    st.info(good_words)
     return good_words, bad_words
     
 # Function to view all items in the database
