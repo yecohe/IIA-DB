@@ -273,26 +273,23 @@ def count_keywords(title, description, good_keywords, bad_keywords):
 def calculate_score(url, title, description, languages, good_keywords, bad_keywords):
     score = "C"
     try:
-        if languages and languages[0] != 'english':
-            title = translate_to_english(title)
-            description = translate_to_english(description)
         good_count, bad_count = count_keywords(title, description, good_keywords, bad_keywords)
         if url.endswith(".il") or url.endswith(".il/"):
-            score = "A"
+            decision = "Yes"
             details = "Hebrew / .il"
         elif "hebrew" in languages:
-            score = "A"
+            decision = "Yes"
             details = "Hebrew / .il"
         elif good_count > 0:
-            score = "B"
-            details = "Good keywords"
+            decision = "Yes"
+            details = f"{good_count} good keywords"
         else:
-            score = "C"
+            decision = "Maybe"
             details = "No good keywords"
-        return score, details, good_count, bad_count
+        return score, details
     except Exception as e:
         error_handler("counting keywords", title, e)
-        return "C", "Error", 0, 0
+        return "Maybe", "Error"
 
 
 # Function to filter out ignored URLs
@@ -423,7 +420,7 @@ def domain_split(client, sheet_id, urls, source_name):
         st.error(f"Error processing '{source_name}': {e}")
 
 # Assuming you have a form for adding/editing items
-def analyze_url(url):
+def analyze_url(url, good_keywords, bad_keywords):
     try:
         title = get_title(url)
         description = get_description(url)
@@ -432,12 +429,14 @@ def analyze_url(url):
         if languages and languages[0] != 'english':
             translated_title = translate_to_english(title)
             translated_description = translate_to_english(description)
+             score, details = calculate_score(url, translated_title, translated_description, languages, good_keywords, bad_keywords)
         else:
             translated_title = ""
             translated_description = ""
-
+            score, details = calculate_score(url, translated_title, translated_description, languages, good_keywords, bad_keywords)
+        
         # Return fetched and translated data
-        return title, description, translated_title, translated_description, languages
+        return title, description, translated_title, translated_description, languages, score, details
     except Exception as e:
         st.error(f"Error during analysis for URL '{url}': {e}")
-        return "Error", "Error", "Error", "Error", ["Error"]
+        return "Error", "", "", "", "", "Error", "Error"
