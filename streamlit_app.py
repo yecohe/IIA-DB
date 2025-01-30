@@ -71,6 +71,13 @@ def create_table():
             languages TEXT
         )
     ''')
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS words_lists (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            word TEXT NOT NULL,
+            type TEXT NOT NULL CHECK(type IN ('Good', 'Bad'))
+        )
+    ''')
     conn.commit()
     conn.close()
 
