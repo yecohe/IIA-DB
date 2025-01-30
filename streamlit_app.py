@@ -136,14 +136,16 @@ def view_db():
 # Function to update form fields with analyzed data
 def update_form_with_analysis(url):
     try:
-        analyzed_data = analyze_url(url)
+        analyzed_data = analyze_url(url, good_keywords, bad_keywords)
         if analyzed_data:
-            title, description, translated_title, translated_description, languages = analyzed_data
+            title, description, translated_title, translated_description, languages, decision, reason = analyzed_data
             st.session_state.title = title
             st.session_state.description = description
             st.session_state.title_translated = translated_title
             st.session_state.description_translated = translated_description
             st.session_state.languages = ", ".join(languages)
+            st.session_state.decision = decision
+            st.session_state.decision_reason = reason
     except Exception as e:
         st.error(f"Error analyzing URL: {e}")
 
