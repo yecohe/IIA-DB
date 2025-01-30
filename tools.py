@@ -260,8 +260,6 @@ def count_keywords(title, description, good_keywords, bad_keywords):
     """Count occurrences of good and bad keywords in the title and description."""
     try:
         combined_text = combine_text(title, description)
-        st.info(f"combined_text: {combined_text}")
-        st.info(f"{good_keywords}, bad: {bad_keywords}")
         word_counts = Counter(combined_text.split())
         good_count = sum(word_counts[word] for word in good_keywords if word in word_counts)
         bad_count = sum(word_counts[word] for word in bad_keywords if word in word_counts)
