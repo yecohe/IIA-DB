@@ -168,8 +168,8 @@ def fetch_good_bad_words():
     words = cursor.fetchall()
     conn.close()
     
-    good_words = [word[0] for word in words if word[1] == 'Good']
-    bad_words = [word[0] for word in words if word[1] == 'Bad']
+    good_words = [word[0].lower() for word in words if word[1] == 'Good']
+    bad_words = [word[0].lower() for word in words if word[1] == 'Bad']
     return good_words, bad_words
     
 # Function to view all items in the database
