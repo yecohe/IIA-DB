@@ -245,8 +245,11 @@ def add_new_item_form():
         add_item_submitted = st.form_submit_button("Add Item")
         
         if analyze_button:
-            with st.spinner('Analyzing...'):
-                update_form_with_analysis(url)
+            if not validators.url(url):
+                st.error("Invalid URL. Please enter a valid URL.")
+            else:
+                with st.spinner('Analyzing...'):
+                    update_form_with_analysis(url)
 
         if add_item_submitted:
             if not validators.url(url):
