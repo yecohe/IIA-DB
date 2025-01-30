@@ -15,12 +15,7 @@ import validators
 def create_connection():
     conn = sqlite3.connect('iiadb.db')  # Local copy of the database
     return conn
-    
-def get_connection():
-    if "conn" not in st.session_state:
-        st.session_state.conn = create_connection()
-    return st.session_state.conn
-    
+
 # Check if the database is already downloaded
 def download_db_if_needed():
     if not os.path.exists('iiadb.db'):
@@ -89,7 +84,7 @@ def create_table():
 # Add a new item to the database
 def add_item(url, decision, decision_reason, source, title, description, title_translated, description_translated, tags, notes, languages):
     try:
-        conn = get_connection()
+        conn = create_connection()
         cursor = conn.cursor()
         cursor.execute(''' 
             INSERT INTO items (url, decision, decision_reason, source, title, description, title_translated, description_translated, tags, notes, languages)
