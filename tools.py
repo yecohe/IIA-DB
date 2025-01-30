@@ -271,7 +271,6 @@ def count_keywords(title, description, good_keywords, bad_keywords):
     
 # Function to calculate score
 def calculate_score(url, title, description, languages, good_keywords, bad_keywords):
-    score = "C"
     try:
         good_count, bad_count = count_keywords(title, description, good_keywords, bad_keywords)
         if url.endswith(".il") or url.endswith(".il/"):
