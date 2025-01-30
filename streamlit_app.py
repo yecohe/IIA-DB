@@ -210,7 +210,7 @@ def update_form_with_analysis(url):
             st.session_state["decision"] = decision
             st.session_state["decision_reason"] = reason
             st.session_state["notes"] = "Automatically analyzed"
-            st.experimental_rerun()
+            st.rerun()
     except Exception as e:
         st.error(f"Error analyzing URL: {e}")
 
@@ -260,7 +260,7 @@ def add_new_item_form():
                     title_translated, description_translated, tags, notes, languages
                 )
                 st.success("New item added successfully!")
-                st.experimental_rerun()
+                st.rerun()
 
 # Save to Google Drive function
 def save_to_drive():
