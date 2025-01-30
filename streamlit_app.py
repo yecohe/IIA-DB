@@ -200,6 +200,7 @@ def update_form_with_analysis(url):
     try:
         analyzed_data = analyze_url(url, good_words, bad_words)
         if analyzed_data:
+            st.info("data")
             title, description, translated_title, translated_description, languages, decision, reason = analyzed_data
             st.session_state.title = title
             st.session_state.description = description
@@ -208,6 +209,7 @@ def update_form_with_analysis(url):
             st.session_state.languages = ", ".join(languages)
             st.session_state.decision = decision
             st.session_state.decision_reason = reason
+            st.session_state.notes = "Automatically analyzed"
     except Exception as e:
         st.error(f"Error analyzing URL: {e}")
 
