@@ -229,7 +229,7 @@ def add_new_item_form():
         st.session_state["notes"] = ""
 
     with st.form(key="new_item_form"):
-        col1, col2 = st.columns([3, 1])
+        col1, col2 = st.columns([3, 1], vertical_alignment="bottom")
         with col1:
             url = st.text_input("URL")
         with col2:
