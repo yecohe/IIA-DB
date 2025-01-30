@@ -230,8 +230,11 @@ def add_new_item_form():
 
     with st.form(key="new_item_form"):
         url = st.text_input("URL")
-        decision = st.selectbox("Decision", ["Yes", "Maybe", "No"], index=["Yes", "Maybe", "No"].index(st.session_state["decision"]))
-        decision_reason = st.text_input("Decision Reason", value=st.session_state["decision_reason"])
+        col1, col2, col3 = st.columns(2)
+        with col1:
+            decision = st.selectbox("Decision", ["Yes", "Maybe", "No"], index=["Yes", "Maybe", "No"].index(st.session_state["decision"]))
+        with col2:
+            decision_reason = st.text_input("Decision Reason", value=st.session_state["decision_reason"])          
         source = st.text_input("Source")
         title = st.text_input("Title", value=st.session_state["title"])
         description = st.text_area("Description", value=st.session_state["description"])
@@ -243,9 +246,9 @@ def add_new_item_form():
 
         col1, col2, col3 = st.columns(3)
         with col1:
-            analyze_button = st.form_submit_button("Analyze")
-        with col2:
             add_item_submitted = st.form_submit_button("Add Item")
+        with col2:
+            analyze_button = st.form_submit_button("Analyze")
         with col3:
             clear_button = st.form_submit_button("Clear")
         
