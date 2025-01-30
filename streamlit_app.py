@@ -111,6 +111,47 @@ def update_item(item_id, url, decision, decision_reason, source, title, descript
         st.error(f"Error while updating the item in the database: {e}")
         raise
 
+# Function to manage words lists
+def manage_words_lists():
+    st.subheader("Manage Words Lists")
+    conn = create_connection()
+    cursor = conn.cursor()
+
+    # Add a word
+    with st.form("add_word_form"):
+        word = st.text_input("Word")
+        word_type = st.text_input("Type")
+        submit = st.form_submit_button("Add Word")
+        if submit:
+            cursor.execute("INSERT INTO words_lists (word, type) VALUES (?, ?)", (word, word_type))
+            conn.commit()
+            st.success("Word added successfully!")
+            upload_db_to_drive()
+
+    # View existing words
+    cursor.execute("SELECT * FROM words_lists")
+    words = cursor.fetchall()
+    df = pd.DataFrame(words, columns=["ID", "Word", "Type"])
+    st.dataframe(df)
+
+    # Edit or delete words
+    for row in words:
+        with st.expander(f"Edit/Delete Word ID: {row[0]}"):
+            new_word = st.text_input("Word", value=row[1], key=f"word_{row[0]}")
+            new_type = st.text_input("Type", value=row[2], key=f"type_{row[0]}")
+            if st.button(f"Update Word ID {row[0]}", key=f"update_{row[0]}"):
+                cursor.execute("UPDATE words_lists SET word = ?, type = ? WHERE id = ?", (new_word, new_type, row[0]))
+                conn.commit()
+                st.success("Word updated successfully!")
+                upload_db_to_drive()
+            if st.button(f"Delete Word ID {row[0]}", key=f"delete_{row[0]}"):
+                cursor.execute("DELETE FROM words_lists WHERE id = ?", (row[0],))
+                conn.commit()
+                st.warning("Word deleted!")
+                upload_db_to_drive()
+
+    conn.close()
+    
 # Function to view all items in the database
 def view_db():
     download_db_if_needed()
@@ -354,6 +395,7 @@ apps = {
     "View Database": view_db,
     "Add a New Item": add_new_item_form,
     "Search and Edit": search_and_edit_mode_selector,
+    "Words Lists": manage_words_lists,
     "Save to Google Drive": save_to_drive  
 }
 
@@ -363,7 +405,7 @@ if authenticated:
         selected_app_name = option_menu(
             "Tools Menu",
             options=list(apps.keys()),
-            icons=["database", "link", "filter", "search", "save"], 
+            icons=["database", "link", "filter", "search", "list", "save"], 
             menu_icon="tools",
             default_index=0,
             orientation="vertical"
