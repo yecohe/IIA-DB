@@ -120,6 +120,7 @@ def update_item(item_id, url, decision, decision_reason, source, title, descript
 
 # Function to manage words lists
 def manage_words_lists():
+    create_table()
     st.subheader("Manage Words Lists")
     conn = create_connection()
     cursor = conn.cursor()
