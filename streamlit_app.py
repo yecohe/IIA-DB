@@ -198,7 +198,7 @@ def view_db():
 def update_form_with_analysis(url):
     good_words, bad_words = fetch_good_bad_words()
     try:
-        analyzed_data = analyze_url(url, good_keywords, bad_keywords)
+        analyzed_data = analyze_url(url, good_words, bad_words)
         if analyzed_data:
             title, description, translated_title, translated_description, languages, decision, reason = analyzed_data
             st.session_state.title = title
