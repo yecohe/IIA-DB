@@ -200,8 +200,8 @@ def update_form_with_analysis(url):
     try:
         analyzed_data = analyze_url(url, good_words, bad_words)
         if analyzed_data:
-            st.info("data")
             title, description, translated_title, translated_description, languages, decision, reason = analyzed_data
+            st.info(title)
             st.session_state.title = title
             st.session_state.description = description
             st.session_state.title_translated = translated_title
